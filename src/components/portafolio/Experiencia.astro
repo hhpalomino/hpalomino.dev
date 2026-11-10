@@ -1,0 +1,341 @@
+---
+import { Image } from 'astro:assets';
+import { experiencia } from '../../data/portafolio';
+
+// Trayectoria como línea de tiempo: cada trabajo con su logo en el nodo y,
+// al final, la formación. Lo actual lleva una etiqueta "Actual" con punto
+// verde (el mismo "En línea" del portafolio del inicio).
+//
+// Cada etapa lleva su tono (los de los servicios del inicio): el anillo del
+// nodo, la línea de arriba y la luz de la tarjeta, y las viñetas. La línea
+// que une los nodos pasa de un tono al siguiente. La sección va en banda,
+// con luces de los mismos tonos, para no leerse plana.
+//
+// Compacta a propósito: los logros van en dos columnas desde 900px y la
+// formación en una sola línea. Antes cada trabajo era una tarjeta grande con
+// una viñeta por fila, y la sección ocupaba más de una pantalla.
+---
+
+<section class="seccion seccion--banda" id="experiencia">
+  <div class="contenedor experiencia">
+    <div class="experiencia__encabezado">
+      <p class="rotulo rotulo--seccion">{experiencia.rotulo}</p>
+      <h2 class="titulo-seccion">
+        {experiencia.titulo.antes}<span class="enfasis">{experiencia.titulo.enfasis}</span>{experiencia.titulo.despues}
+      </h2>
+    </div>
+
+    <ol class="linea">
+      {
+        experiencia.trabajos.map((t) => (
+          <li class="hito" style={`--tono: ${t.tono}`} data-revelar>
+            <span class="hito__nodo" aria-hidden="true">
+              {t.logo ? (
+                <Image class="hito__logo" src={t.logo} alt="" width={64} />
+              ) : (
+                <span class="hito__iniciales">HP</span>
+              )}
+            </span>
+            <article class="hito__tarjeta">
+              <header class="hito__cabeza">
+                <div class="hito__titulos">
+                  <h3 class="hito__empresa">{t.empresa}</h3>
+                  <p class="hito__cargo">
+                    {t.cargo} · {t.lugar}
+                  </p>
+                </div>
+                <p class="hito__periodo">
+                  {t.periodo}
+                  {t.actual && (
+                    <span class="hito__actual">
+                      <span class="hito__punto" aria-hidden="true" />
+                      {experiencia.etiquetaActual}
+                    </span>
+                  )}
+                </p>
+              </header>
+              <ul class="lista-punto hito__puntos">
+                {t.puntos.map((p) => <li>{p}</li>)}
+              </ul>
+            </article>
+          </li>
+        ))
+      }
+
+      <li class="hito hito--formacion" style="--tono: var(--tono-violeta)" data-revelar>
+        <span class="hito__nodo" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M2 9l10-5 10 5-10 5L2 9zM6 11v5c0 1.5 2.7 3 6 3s6-1.5 6-3v-5M22 9v6"></path>
+          </svg>
+        </span>
+        <article class="hito__tarjeta">
+          <header class="hito__cabeza">
+            <div class="hito__titulos">
+              <h3 class="hito__empresa">
+                <span class="hito__etiqueta">{experiencia.formacion.etiqueta}</span>
+                {experiencia.formacion.titulo}
+              </h3>
+              <p class="hito__cargo">{experiencia.formacion.institucion}</p>
+            </div>
+            <p class="hito__periodo">{experiencia.formacion.periodo}</p>
+          </header>
+        </article>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<style>
+  #experiencia {
+    position: relative;
+    isolation: isolate;
+  }
+
+  /* Luces de la banda: turquesa arriba a la izquierda (EGLO) y naranjo a la
+     derecha (independiente), muy bajas. */
+  #experiencia::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(35% 35% at 5% 25%, color-mix(in srgb, var(--tono-turquesa) 8%, transparent), transparent 70%),
+      radial-gradient(35% 40% at 95% 70%, color-mix(in srgb, var(--tono-naranjo) 8%, transparent), transparent 70%);
+  }
+
+  .experiencia {
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+  }
+
+  .experiencia__encabezado {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  /* ---- Línea de tiempo ---------------------------------------------------- */
+
+  .linea {
+    --nodo: 2.5rem;
+    --hueco: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: var(--hueco);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .hito {
+    position: relative;
+    display: grid;
+    grid-template-columns: var(--nodo) minmax(0, 1fr);
+    gap: 0.875rem;
+    align-items: start;
+  }
+
+  /* Tramo de línea hasta el hito siguiente. */
+  .hito:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    top: var(--nodo);
+    bottom: calc(-1 * var(--hueco));
+    left: calc(var(--nodo) / 2 - 1px);
+    width: 2px;
+    background: linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--tono) 60%, transparent),
+      var(--border-strong)
+    );
+  }
+
+  .hito__nodo {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: var(--nodo);
+    height: var(--nodo);
+    overflow: hidden;
+    border-radius: 50%;
+    border: 1px solid var(--border-strong);
+    background: #fff;
+    color: var(--text-soft);
+    /* Anillo del tono, separado del nodo por el fondo. */
+    box-shadow:
+      0 0 0 3px var(--bg),
+      0 0 0 4px color-mix(in srgb, var(--tono) 70%, transparent),
+      0 8px 20px -6px color-mix(in srgb, var(--tono) 45%, transparent);
+  }
+
+  .hito__logo {
+    width: 70%;
+    height: 70%;
+    object-fit: contain;
+  }
+
+  /* Sin logo (Independiente) y formación: nodo oscuro con iniciales o
+     ícono. */
+  .hito__iniciales,
+  .hito--formacion .hito__nodo {
+    background: var(--bg);
+  }
+
+  .hito__nodo:has(.hito__iniciales) {
+    background: color-mix(in srgb, var(--tono) 14%, var(--bg));
+    border-color: color-mix(in srgb, var(--tono) 45%, transparent);
+  }
+
+  .hito__iniciales {
+    background: none;
+    font-family: var(--font-mono);
+    font-size: var(--size-xs);
+    font-weight: 500;
+    color: var(--tono);
+  }
+
+  .hito--formacion .hito__nodo {
+    color: var(--tono);
+    border-color: color-mix(in srgb, var(--tono) 45%, transparent);
+  }
+
+  /* La tarjeta como los cuadros de servicios del inicio: luz del tono
+     arriba a la derecha y una línea de color en el borde de arriba. */
+  .hito__tarjeta {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1rem 1.125rem 1.125rem;
+    background:
+      radial-gradient(60% 80% at 100% 0%, color-mix(in srgb, var(--tono) 10%, transparent), transparent 70%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.02)),
+      var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+  }
+
+  .hito__tarjeta::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(to right, var(--tono), transparent 70%);
+  }
+
+  .hito--formacion .hito__tarjeta {
+    padding-block: 0.75rem;
+  }
+
+  .hito__cabeza {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.5rem 1.5rem;
+  }
+
+  .hito__titulos {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    min-width: 0;
+  }
+
+  .hito__etiqueta {
+    margin-right: 0.5rem;
+    font-family: var(--font-mono);
+    font-size: var(--size-xs);
+    font-weight: 400;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-soft);
+  }
+
+  .hito__empresa {
+    font-size: var(--size-lg);
+    font-weight: var(--weight-bold);
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    color: var(--text);
+  }
+
+  .hito--formacion .hito__empresa {
+    font-size: var(--size-base);
+  }
+
+  .hito__cargo {
+    font-size: var(--size-sm);
+    line-height: 1.5;
+    color: var(--text-body);
+  }
+
+  .hito__periodo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--font-mono);
+    font-size: var(--size-xs);
+    color: var(--text-soft);
+  }
+
+  .hito__actual {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.125rem 0.5rem;
+    border-radius: var(--radius-pill);
+    background: color-mix(in srgb, var(--en-linea) 12%, transparent);
+    font-size: var(--size-xs);
+    color: var(--en-linea);
+  }
+
+  .hito__punto {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--en-linea);
+  }
+
+  .hito__puntos {
+    gap: 0.375rem;
+  }
+
+  .hito__puntos > li {
+    font-size: var(--size-sm);
+  }
+
+  .hito__puntos > li::before {
+    background: var(--tono);
+  }
+
+  @media (min-width: 768px) {
+    .linea {
+      --nodo: 2.75rem;
+      --hueco: 1.25rem;
+    }
+
+    .hito {
+      gap: 1.25rem;
+    }
+
+    .hito__tarjeta {
+      padding: 1.125rem 1.5rem 1.25rem;
+    }
+  }
+
+  /* Logros en dos columnas: la mitad de alto. */
+  @media (min-width: 900px) {
+    .hito__puntos {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.375rem 2rem;
+    }
+  }
+</style>

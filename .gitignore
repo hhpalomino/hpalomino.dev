@@ -1,0 +1,46 @@
+# build output
+dist/
+# salida del adaptador de Vercel (y el enlace local del proyecto, si se usa la CLI)
+.vercel/
+# generated types
+.astro/
+
+# dependencies
+node_modules/
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+
+# environment variables
+.env
+.env.production
+# la CLI de Vercel (`vercel env pull`) escribe acá
+.env.local
+
+# macOS-specific files
+.DS_Store
+
+# jetbrains setting folder
+.idea/
+
+# impeccable: preferencias por máquina (config.json sí se versiona)
+.impeccable/config.local.json
+
+# harness: ajustes y hooks locales, reinstalables con `npx impeccable install`
+.claude/settings.local.json
+.claude/skills/
+
+
+# Material interno de trabajo: estrategia de producto, análisis de la
+# competencia, maquetas y pruebas de diseño. Queda en el computador, no en el
+# repositorio público.
+PRODUCT.md
+docs/*
+!docs/formulario.md
+design/
+.impeccable/
+.claude/

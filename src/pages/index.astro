@@ -1,0 +1,50 @@
+---
+import Base from '../layouts/Base.astro';
+import Header from '../components/Header.astro';
+import Hero from '../components/Hero.astro';
+import Servicios from '../components/Servicios.astro';
+import ComoTrabajo from '../components/ComoTrabajo.astro';
+import TrabajoPublicado from '../components/TrabajoPublicado.astro';
+import Consultoria from '../components/Consultoria.astro';
+import SobreMi from '../components/SobreMi.astro';
+import Preguntas from '../components/Preguntas.astro';
+import Contacto from '../components/Contacto.astro';
+import Footer from '../components/Footer.astro';
+import BotonFlotante from '../components/BotonFlotante.astro';
+import { site, contacto } from '../data/site';
+
+// Orden de secciones: docs/propuesta-contenido.md §3. Cada una responde una
+// pregunta distinta del visitante, en el orden en que se la hace.
+
+// Para Google: el servicio que ofrece la persona (la persona la pone Base).
+const servicio = {
+  '@type': 'ProfessionalService',
+  name: site.nombre,
+  url: `https://${site.dominio}/`,
+  description: site.descripcionSEO,
+  email: contacto.email,
+  telephone: contacto.whatsappCL.numero,
+  areaServed: [
+    { '@type': 'Country', name: 'Chile' },
+    { '@type': 'Country', name: 'Brasil' },
+  ],
+  founder: { '@id': `https://${site.dominio}/#persona` },
+  serviceType: ['Desarrollo de sitios web', 'Software a medida', 'Integración de sistemas', 'Consultoría de software'],
+};
+---
+
+<Base datosEstructurados={[servicio]}>
+  <Header />
+  <main id="contenido">
+    <Hero />
+    <Servicios />
+    <Consultoria />
+    <ComoTrabajo />
+    <TrabajoPublicado />
+    <SobreMi />
+    <Preguntas />
+    <Contacto />
+  </main>
+  <Footer />
+  <BotonFlotante />
+</Base>

@@ -1,0 +1,300 @@
+---
+import { servicios, type Servicio } from '../data/contenido';
+import EsquemaServicio from './EsquemaServicio.astro';
+
+// Cada servicio es un bloque numerado, como en yurilopes.site. El número sale
+// del orden en contenido.ts: agregar un servicio es agregar un bloque ahí,
+// sin tocar este archivo. Había además un índice numerado sobre los bloques;
+// se sacó el 10 de noviembre de 2026 porque repetía los tres nombres que se
+// leen justo debajo (y los chips del hero).
+const numero = (i: number) => String(i + 1).padStart(2, '0');
+
+// Tipado como Servicio[] para que un bloque nuevo sin `esquema` no rompa.
+const items: readonly Servicio[] = servicios.items;
+---
+
+<section class="seccion seccion--servicios" id="servicios">
+  <div class="contenedor servicios">
+    <div class="servicios__encabezado">
+      <p class="rotulo rotulo--seccion">{servicios.rotulo}</p>
+      <h2 class="titulo-seccion">
+        {servicios.titulo.antes}<span class="enfasis">{servicios.titulo.enfasis}</span>{servicios.titulo.despues}
+      </h2>
+      <p class="servicios__bajada">{servicios.bajada}</p>
+    </div>
+
+    <div class="servicios__grilla">
+      {
+        items.map((servicio, i) => (
+          <article
+            class:list={['servicio', `servicio--${servicio.tamano}`, { 'servicio--con-esquema': servicio.esquema }]}
+            id={`servicio-${servicio.id}`}
+            style={`--tono: var(--tono-${servicio.tono})`}
+            data-revelar
+          >
+            <div class="servicio__cabecera">
+              <span class="servicio__numero" aria-hidden="true">{numero(i)}</span>
+              <div class="servicio__textos">
+                <h3 class="servicio__titulo">{servicio.titulo}</h3>
+                <p class="servicio__texto">{servicio.texto}</p>
+              </div>
+            </div>
+            {servicio.lista.length > 0 && (
+              <ul class="lista-punto servicio__lista">
+                {servicio.lista.map((item) => <li>{item}</li>)}
+              </ul>
+            )}
+            {servicio.esquema && (
+              <div class="servicio__esquema">
+                <EsquemaServicio tipo={servicio.esquema} />
+              </div>
+            )}
+            {servicio.enlace && (
+              <a class="boton boton--secundario boton--chico servicio__enlace" href={servicio.enlace.href}>
+                {servicio.enlace.label} <span aria-hidden="true">→</span>
+              </a>
+            )}
+          </article>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .servicios {
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+  }
+
+  .servicios__encabezado {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .servicios__bajada {
+    max-width: 40rem;
+    font-size: var(--size-md);
+    line-height: 1.6;
+    color: var(--text-body);
+  }
+
+  .servicios__grilla {
+    display: grid;
+    gap: 1.5rem;
+  }
+
+  /* El salto desde el índice ya no necesita scroll-margin propio: lo
+     resuelve el scroll-padding-top de global.css, que además esquiva la
+     cabecera flotante. Sumar los dos dejaba el cuadro demasiado abajo. */
+
+  /* Tarjeta: panel apenas levantado sobre el fondo. El degradé blanco muy
+     bajo aclara el borde superior sin inventar un color nuevo. */
+  /* Luces de fondo de la sección: turquesa arriba a la derecha y violeta
+     abajo a la izquierda, muy bajas. Sin desenfoque: el degradado radial ya
+     es suave. */
+  .seccion--servicios {
+    background-image:
+      radial-gradient(45% 40% at 90% 10%, color-mix(in srgb, var(--tono-turquesa) 7%, transparent), transparent 70%),
+      radial-gradient(40% 40% at 5% 95%, color-mix(in srgb, var(--tono-violeta) 7%, transparent), transparent 70%);
+  }
+
+  .servicio {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    /* Arriba a la derecha, una luz del tono del servicio. */
+    background:
+      radial-gradient(70% 60% at 100% 0%, color-mix(in srgb, var(--tono) 10%, transparent), transparent 70%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.02)),
+      var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-caluga);
+    padding: 1.5rem 1.75rem;
+  }
+
+  /* Sin hover a propósito: el cuadro no es un enlace. Un cuadro que se
+     levanta al pasar el mouse promete un clic que no existe. Regla del sitio:
+     solo reacciona al mouse lo que se puede apretar. Si algún día un cuadro
+     lleva a una página propia, ahí sí vuelve el hover, y el cuadro entero
+     tiene que ser el enlace. */
+
+  /* Cabecera: número a la izquierda, título y párrafo a la derecha. La caja
+     del número nunca se encoge; si falta ancho, el que se parte es el título.
+     El número reemplaza al ícono: no hay que dibujar uno por servicio nuevo. */
+  .servicio__cabecera {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.25rem;
+  }
+
+  .servicio__numero {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius);
+    background: color-mix(in srgb, var(--tono) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--tono) 40%, transparent);
+    color: var(--tono);
+    font-size: 1.125rem;
+    font-weight: var(--weight-bold);
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Las viñetas de la lista, en el tono del servicio. */
+  .servicio__lista > li::before {
+    background: var(--tono);
+  }
+
+  .servicio__textos {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-width: 0;
+  }
+
+  .servicio__titulo {
+    font-size: var(--size-xl);
+    /* La referencia usa 600; Epilogue se carga en 500 y 700, y el navegador
+       resolvería 600 a 700 igual. */
+    font-weight: var(--weight-bold);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    overflow-wrap: break-word;
+  }
+
+  .servicio__texto {
+    font-size: var(--size-base);
+    line-height: 1.6;
+    color: var(--text-body);
+  }
+
+  .servicio__enlace {
+    align-self: flex-start;
+  }
+
+  /* Ilustración al pie del cuadro. margin-top: auto la empuja abajo, así
+     que en una misma fila los dibujos quedan alineados aunque los textos
+     tengan largos distintos. */
+  .servicio__esquema {
+    margin-top: auto;
+  }
+
+  @media (min-width: 768px) {
+    .servicio__texto {
+      font-size: var(--size-md);
+    }
+  }
+
+  /* Entre 900 y 1023 px los cuadros van uno por fila, anchos: número, título
+     y descripción a la izquierda; la lista a la derecha. Desde 1024 px eso
+     queda solo para los cuadros 'completo' (ver más abajo). */
+  @media (min-width: 900px) {
+    .servicios__grilla {
+      gap: 1.25rem;
+    }
+
+    .servicio {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      grid-template-rows: auto 1fr;
+      column-gap: 3.5rem;
+      row-gap: 0.75rem;
+      padding: 1.75rem 2rem;
+    }
+
+    .servicio__cabecera {
+      grid-column: 1;
+      grid-row: 1 / span 2;
+    }
+
+    .servicio__lista {
+      grid-column: 2;
+      grid-row: 1;
+      align-self: start;
+      padding-top: 0.25rem;
+    }
+
+    .servicio__enlace {
+      grid-column: 2;
+      grid-row: 2;
+      align-self: start;
+      justify-self: start;
+      margin-top: 0.25rem;
+    }
+
+    /* Con ilustración: cabecera y lista apiladas a la izquierda, el dibujo
+       a la derecha, centrado en alto. Un cuadro sin `esquema` conserva el
+       reparto de arriba (lista a la derecha). */
+    .servicio--con-esquema {
+      grid-template-rows: auto auto 1fr;
+      row-gap: 1.25rem;
+    }
+
+    .servicio--con-esquema .servicio__cabecera {
+      grid-column: 1;
+      grid-row: 1;
+    }
+
+    .servicio--con-esquema .servicio__lista {
+      grid-column: 1;
+      grid-row: 2;
+      padding-top: 0;
+    }
+
+    .servicio--con-esquema .servicio__enlace {
+      grid-column: 1;
+      grid-row: 3;
+    }
+
+    .servicio--con-esquema .servicio__esquema {
+      grid-column: 2;
+      grid-row: 1 / -1;
+      align-self: center;
+      margin-top: 0;
+    }
+  }
+
+  /* Bento, como yurilopes.site: 12 columnas, y cada cuadro toma 7, 5 o 12
+     según su `tamano` en contenido.ts. Los de una misma fila se estiran a la
+     misma altura. Grande y chico apilan su contenido; completo lo reparte en
+     dos columnas. */
+  @media (min-width: 1024px) {
+    .servicios__grilla {
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+    }
+
+    .servicio--grande {
+      grid-column: span 7;
+    }
+
+    .servicio--chico {
+      grid-column: span 5;
+    }
+
+    .servicio--completo {
+      grid-column: span 12;
+    }
+
+    .servicio--grande,
+    .servicio--chico {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    /* En grande y chico el dibujo vuelve al pie, a todo el ancho. */
+    .servicio--grande .servicio__esquema,
+    .servicio--chico .servicio__esquema {
+      align-self: stretch;
+      margin-top: auto;
+    }
+  }
+</style>

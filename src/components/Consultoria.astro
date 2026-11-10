@@ -1,0 +1,249 @@
+---
+import { consultoria } from '../data/contenido';
+
+// Para quien no sabe qué pedir. La cita es vinculante (PRODUCT.md): palabras
+// propias del dueño del sitio, no se edita.
+//
+// Estructura centrada, a propósito distinta de "Cómo trabajo", que viene
+// justo después con texto a la izquierda y pasos a la derecha: cuando las dos
+// tenían esa forma, se leían como una sola sección larga (3 de octubre de
+// 2026). Acá: encabezado centrado, los tres puntos en fila y el cierre con
+// la cita centrados abajo.
+//
+// Cada punto lleva un tono (los mismos de los servicios), un ícono simple
+// dibujado acá (el sitio no usa biblioteca de íconos), una línea de color
+// arriba y una luz en la esquina. Los íconos van por posición: si se cambia
+// el orden de los puntos en contenido.ts, hay que revisar que sigan
+// calzando.
+
+const tonos = ['var(--tono-naranjo)', 'var(--tono-turquesa)', 'var(--tono-violeta)'];
+
+// 1: qué sí y qué no (un visto y una cruz). 2: programas (cuatro
+// ventanas). 3: desarrollar o no (un camino que se divide en dos).
+const iconos = [
+  'M4 7l2.5 2.5L11 5M14 6h6M4 17l5-5M9 17l-5-5M14 15h6',
+  'M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z',
+  'M12 21v-7M12 14L6 8M12 14l6-6M6 8V3M18 8V3M4 5l2-2 2 2M16 5l2-2 2 2',
+];
+---
+
+<section class="seccion seccion--banda" id="consultoria">
+  <div class="contenedor consultoria">
+    <div class="consultoria__encabezado">
+      <p class="rotulo rotulo--seccion">{consultoria.rotulo}</p>
+
+      <h2 class="titulo-seccion">
+        {consultoria.titulo.antes}<span class="enfasis">{consultoria.titulo.enfasis}</span>{consultoria.titulo.despues}
+      </h2>
+
+      <p class="consultoria__intro">{consultoria.intro}</p>
+    </div>
+
+    <ul class="consultoria__puntos">
+      {
+        consultoria.puntos.map((punto, i) => (
+          <li class="consultoria__punto" style={`--tono: ${tonos[i % tonos.length]}`} data-revelar>
+            <div class="consultoria__cabeza">
+              <span class="consultoria__icono" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                  <path d={iconos[i % iconos.length]} />
+                </svg>
+              </span>
+              <strong class="consultoria__lead">{punto.lead}</strong>
+            </div>
+            <span class="consultoria__texto">{punto.texto}</span>
+          </li>
+        ))
+      }
+    </ul>
+
+    <div class="consultoria__pie">
+      <p class="consultoria__cierre">{consultoria.cierre}</p>
+      <blockquote class="consultoria__cita">
+        <span class="consultoria__comillas" aria-hidden="true">“</span>
+        <p>{consultoria.cita}</p>
+      </blockquote>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* Luces de fondo sobre la banda: naranjo a la izquierda y violeta a la
+     derecha, a la altura de las tarjetas; ámbar muy bajo detrás del
+     cierre. */
+  #consultoria {
+    position: relative;
+    isolation: isolate;
+  }
+
+  #consultoria::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(35% 40% at 8% 55%, color-mix(in srgb, var(--tono-naranjo) 11%, transparent), transparent 70%),
+      radial-gradient(35% 40% at 92% 50%, color-mix(in srgb, var(--tono-violeta) 11%, transparent), transparent 70%),
+      radial-gradient(30% 25% at 50% 88%, rgba(250, 204, 21, 0.06), transparent 70%);
+  }
+
+  .consultoria {
+    display: flex;
+    flex-direction: column;
+    gap: 2.25rem;
+  }
+
+  /* Encabezado centrado: rótulo, título e introducción en una columna
+     angosta al medio. */
+  .consultoria__encabezado {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    max-width: 44rem;
+    margin-inline: auto;
+    text-align: center;
+  }
+
+  .consultoria__encabezado .rotulo--seccion {
+    align-self: center;
+  }
+
+  .consultoria__intro {
+    font-size: var(--size-md);
+    line-height: 1.62;
+    color: var(--text-body);
+  }
+
+  /* Los tres puntos: una tarjeta cada uno, en fila desde 768px. El texto es
+     corto (dos o tres líneas), así que no quedan largas y flacas. */
+  .consultoria__puntos {
+    display: grid;
+    gap: 1rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .consultoria__punto {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1.5rem;
+    background:
+      radial-gradient(80% 70% at 0% 0%, color-mix(in srgb, var(--tono) 16%, transparent), transparent 70%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.02)),
+      var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+  }
+
+  /* Línea de color arriba, que se desvanece hacia la derecha. */
+  .consultoria__punto::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(to right, var(--tono), transparent 85%);
+  }
+
+  /* Ícono a la izquierda y título a la derecha, como el número y el título
+     en las tarjetas de Servicios. */
+  .consultoria__cabeza {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .consultoria__icono {
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: var(--radius);
+    background: color-mix(in srgb, var(--tono) 13%, transparent);
+    border: 1px solid color-mix(in srgb, var(--tono) 35%, transparent);
+    color: var(--tono);
+  }
+
+  .consultoria__lead {
+    font-size: var(--size-lg);
+    font-weight: var(--weight-bold);
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+    color: var(--text);
+    text-wrap: balance;
+  }
+
+  .consultoria__texto {
+    font-size: var(--size-base);
+    line-height: 1.6;
+    color: var(--text-body);
+  }
+
+  /* Cierre centrado: la frase vinculante más grande y, debajo, la cita en
+     cursiva, discreta. */
+  .consultoria__pie {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    max-width: 40rem;
+    margin-inline: auto;
+    text-align: center;
+  }
+
+  .consultoria__cierre {
+    font-size: var(--size-xl);
+    font-weight: var(--weight-light);
+    line-height: 1.35;
+    letter-spacing: -0.01em;
+    color: var(--text);
+    text-wrap: balance;
+  }
+
+  .consultoria__cita {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* Comillas grandes en degradé, con los tonos de las tarjetas. */
+  .consultoria__comillas {
+    height: 2.25rem;
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 4rem;
+    line-height: 1;
+    background: linear-gradient(90deg, var(--tono-naranjo), var(--tono-violeta));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .consultoria__cita p {
+    font-size: var(--size-md);
+    font-style: italic;
+    line-height: 1.6;
+    color: var(--text-body);
+    text-wrap: balance;
+  }
+
+  @media (min-width: 768px) {
+    .consultoria__puntos {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1.25rem;
+    }
+
+    .consultoria {
+      gap: 2.75rem;
+    }
+  }
+</style>

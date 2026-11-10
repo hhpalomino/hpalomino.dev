@@ -1,0 +1,88 @@
+---
+import { contacto, redes } from '../../data/site';
+import { hero } from '../../data/contenido';
+import { contactoPortafolio as texto } from '../../data/portafolio';
+import IconoWhatsApp from '../IconoWhatsApp.astro';
+
+// Cierre de /portafolio: centrado y corto, con los tres canales que usa una
+// empresa (WhatsApp, correo, LinkedIn). Misma retícula y luz con que cierra
+// el inicio.
+---
+
+<section class="seccion cierre" id="contacto">
+  <div class="contenedor cierre__contenido">
+    <h2 class="titulo-seccion cierre__titulo">
+      {texto.titulo.antes}<span class="enfasis">{texto.titulo.enfasis}</span>{texto.titulo.despues}
+    </h2>
+    <p class="cierre__bajada">{texto.bajada}</p>
+    <div class="cierre__botones">
+      <a class="boton" href={contacto.whatsappCL.url}>
+        <IconoWhatsApp color="var(--accent-ink)" />
+        {hero.botonWhatsApp}
+      </a>
+      <a class="boton boton--secundario" href={`mailto:${contacto.email}`}>{contacto.email}</a>
+      <a class="boton boton--secundario" href={redes.linkedin.url} target="_blank" rel="noopener me">
+        {texto.linkedin} <span aria-hidden="true">↗</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .cierre {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .cierre::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image:
+      linear-gradient(var(--reticula) 1px, transparent 1px),
+      linear-gradient(90deg, var(--reticula) 1px, transparent 1px);
+    background-size: 64px 64px;
+    -webkit-mask-image: radial-gradient(ellipse 60% 70% at 50% 50%, #000 30%, transparent 100%);
+    mask-image: radial-gradient(ellipse 60% 70% at 50% 50%, #000 30%, transparent 100%);
+  }
+
+  .cierre::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    pointer-events: none;
+    background: radial-gradient(40% 60% at 50% 50%, rgba(250, 204, 21, 0.09), transparent 70%);
+  }
+
+  .cierre__contenido {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    text-align: center;
+  }
+
+  .cierre__titulo {
+    margin-inline: auto;
+  }
+
+  .cierre__bajada {
+    font-size: var(--size-md);
+    color: var(--text-body);
+  }
+
+  .cierre__botones {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+  }
+
+  .cierre__botones .boton {
+    overflow-wrap: anywhere;
+  }
+</style>

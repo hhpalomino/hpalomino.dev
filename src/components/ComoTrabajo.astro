@@ -1,0 +1,275 @@
+---
+import { contacto } from '../data/site';
+import { comoTrabajo, hero } from '../data/contenido';
+import IconoWhatsApp from './IconoWhatsApp.astro';
+
+// Le quita el miedo a quien nunca contrató esto: sabe qué va a pasar.
+//
+// Línea de tiempo vertical (3 de octubre de 2026; antes eran cuatro cajas
+// iguales en fila, con el texto apretado en columnas angostas, y se sentía
+// fome). Desde 900px, el título y el botón van a la izquierda, fijos
+// mientras los pasos pasan a la derecha (la columna izquierda es mucho más
+// corta y, si no, quedaba un vacío grande).
+//
+// Cada paso tiene su color (los mismos tonos de los servicios, y el
+// amarillo para el último: publicar). Entre un paso y el siguiente hay un
+// tramo de línea que pasa de un color al otro y se va llenando al bajar,
+// donde el navegador lo permite; si no, se ve completo.
+//
+// Rompe a propósito el molde de las otras secciones: el título va entero en
+// liviana, sin fragmento en negrita.
+
+const tonos = ['var(--tono-naranjo)', 'var(--tono-turquesa)', 'var(--tono-violeta)', 'var(--accent)'];
+---
+
+<section class="seccion" id="como-trabajo">
+  <div class="contenedor como">
+    <!-- Columna izquierda: encabezado y cierre juntos, para que queden fijos
+         mientras pasan los pasos. En teléfono no existe como caja (display:
+         contents) y cada parte va en su lugar: encabezado arriba, cierre al
+         final. -->
+    <div class="como__lado">
+      <div class="como__encabezado">
+        <p class="rotulo rotulo--seccion">{comoTrabajo.rotulo}</p>
+        <h2 class="titulo-seccion">
+          {comoTrabajo.titulo.antes}{comoTrabajo.titulo.enfasis}{comoTrabajo.titulo.despues}
+        </h2>
+      </div>
+
+      <div class="como__cierre">
+        <p class="como__cierre-texto">{comoTrabajo.cierre}</p>
+        <a class="boton" href={contacto.whatsappCL.url}>
+          <IconoWhatsApp color="var(--accent-ink)" />
+          {hero.botonWhatsApp}
+        </a>
+      </div>
+    </div>
+
+    <div class="pasos">
+      <ol class="pasos__lista">
+        {
+          comoTrabajo.pasos.map((paso, i) => (
+            <li
+              class="paso"
+              style={`--tono: ${tonos[i % tonos.length]}; --tono-siguiente: ${tonos[(i + 1) % tonos.length]}`}
+              data-revelar
+            >
+              <span class="paso__nodo" aria-hidden="true">
+                {paso.numero}
+              </span>
+              <div class="paso__cuerpo">
+                <span class="paso__dato">{paso.dato}</span>
+                <h3 class="paso__nombre">{paso.nombre}</h3>
+                <p class="paso__texto">{paso.texto}</p>
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* Teléfono: encabezado, pasos y cierre, uno debajo del otro. */
+  .como {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'encabezado'
+      'pasos'
+      'cierre';
+    gap: 2rem;
+  }
+
+  .como__lado {
+    display: contents;
+  }
+
+  .como__encabezado {
+    grid-area: encabezado;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .como__cierre {
+    grid-area: cierre;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .como__cierre-texto {
+    font-size: var(--size-lg);
+    line-height: 1.4;
+    color: var(--text);
+  }
+
+  .como__cierre .boton {
+    width: 100%;
+  }
+
+  /* ---- Línea de tiempo ---------------------------------------------------- */
+
+  /* El nodo mide --nodo; la línea corre por su centro. --hueco es la
+     distancia entre pasos: el tramo de línea la cruza hasta el nodo
+     siguiente. */
+  .pasos {
+    --nodo: 3rem;
+    --hueco: 2.25rem;
+    grid-area: pasos;
+  }
+
+  .pasos__lista {
+    display: flex;
+    flex-direction: column;
+    gap: var(--hueco);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .paso {
+    position: relative;
+    display: grid;
+    grid-template-columns: var(--nodo) minmax(0, 1fr);
+    gap: 1.25rem;
+    align-items: start;
+  }
+
+  /* Tramo de línea hacia el paso siguiente: un riel gris (::before) y,
+     encima, el relleno de color (::after), del tono de este paso al del
+     siguiente. El último paso no lleva. */
+  .paso:not(:last-child)::before,
+  .paso:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: var(--nodo);
+    bottom: calc(-1 * var(--hueco));
+    left: calc(var(--nodo) / 2 - 1px);
+    width: 2px;
+  }
+
+  .paso:not(:last-child)::before {
+    background: var(--border);
+  }
+
+  .paso:not(:last-child)::after {
+    background: linear-gradient(to bottom, var(--tono), var(--tono-siguiente));
+    transform-origin: top;
+  }
+
+  /* Donde el navegador sabe animar con el scroll, cada tramo se llena a
+     medida que pasa por la pantalla. */
+  @supports (animation-timeline: view()) {
+    .paso:not(:last-child)::after {
+      animation: llenar linear both;
+      animation-timeline: view();
+      animation-range: entry 40% cover 55%;
+    }
+  }
+
+  @keyframes llenar {
+    from {
+      transform: scaleY(0);
+    }
+
+    to {
+      transform: scaleY(1);
+    }
+  }
+
+  /* Nodo: círculo con el número, en el color del paso. */
+  .paso__nodo {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: var(--nodo);
+    height: var(--nodo);
+    border-radius: 50%;
+    border: 1px solid color-mix(in srgb, var(--tono) 55%, transparent);
+    background:
+      radial-gradient(circle, color-mix(in srgb, var(--tono) 22%, transparent), transparent 75%),
+      var(--bg);
+    color: var(--tono);
+    font-family: var(--font-mono);
+    font-size: var(--size-md);
+    font-weight: 500;
+  }
+
+  .paso__cuerpo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding-top: 0.125rem;
+  }
+
+  .paso__dato {
+    align-self: flex-start;
+    padding: 0.25rem 0.625rem;
+    border-radius: var(--radius-pill);
+    background: color-mix(in srgb, var(--tono) 12%, transparent);
+    font-family: var(--font-mono);
+    font-size: var(--size-xs);
+    letter-spacing: 0.06em;
+    color: var(--tono);
+  }
+
+  .paso__nombre {
+    font-size: var(--size-xl);
+    font-weight: var(--weight-bold);
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    text-wrap: balance;
+  }
+
+  .paso__texto {
+    max-width: 34rem;
+    font-size: var(--size-md);
+    line-height: 1.6;
+    color: var(--text-body);
+  }
+
+  /* Desde 900px: a la izquierda, encabezado y cierre juntos y fijos
+     (sticky) mientras los pasos pasan a la derecha. */
+  @media (min-width: 900px) {
+    .como {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      grid-template-areas: 'lado pasos';
+      column-gap: 4rem;
+    }
+
+    .como__lado {
+      grid-area: lado;
+      position: sticky;
+      top: 7rem;
+      align-self: start;
+      display: flex;
+      flex-direction: column;
+      gap: 2.5rem;
+    }
+
+    .como__cierre .boton {
+      width: auto;
+    }
+
+    .pasos {
+      --nodo: 3.5rem;
+      --hueco: 3rem;
+    }
+
+    .paso {
+      gap: 1.75rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .paso:not(:last-child)::after {
+      animation: none;
+      transform: none;
+    }
+  }
+</style>

@@ -1,0 +1,120 @@
+---
+import { sobreMi } from '../../data/portafolio';
+
+// "Sobre mí" en versión larga: el texto personal del portafolio anterior.
+// En el inicio solo va una frase; acá, el relato completo.
+//
+// Para que no sea una columna de texto plana: el primer párrafo va grande y
+// liviano, como el cierre de Consultoría del inicio, con comillas grandes en
+// naranjo (lisas: el degradé en texto se lee como adorno); los otros dos van
+// debajo, en dos columnas. Una luz ámbar muy
+// baja detrás del párrafo grande.
+
+const [primero, ...resto] = sobreMi.parrafos;
+---
+
+<section class="seccion" id="sobre-mi">
+  <div class="contenedor sobre">
+    <div class="sobre__encabezado">
+      <p class="rotulo rotulo--seccion">{sobreMi.rotulo}</p>
+      <h2 class="titulo-seccion">
+        {sobreMi.titulo.antes}<span class="enfasis">{sobreMi.titulo.enfasis}</span>{sobreMi.titulo.despues}
+      </h2>
+    </div>
+
+    <div class="sobre__relato" data-revelar>
+      <p class="sobre__entrada">
+        <span class="sobre__comillas" aria-hidden="true">“</span>
+        {primero}
+      </p>
+      <div class="sobre__resto">
+        {resto.map((p) => <p>{p}</p>)}
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  #sobre-mi {
+    position: relative;
+    isolation: isolate;
+  }
+
+  #sobre-mi::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(40% 45% at 30% 55%, rgba(250, 204, 21, 0.05), transparent 70%),
+      radial-gradient(30% 40% at 90% 80%, color-mix(in srgb, var(--tono-violeta) 7%, transparent), transparent 70%);
+  }
+
+  .sobre {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .sobre__encabezado {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .sobre__relato {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  /* El párrafo de entrada, grande y liviano; las comillas cuelgan a la
+     izquierda en escritorio, fuera de la columna de texto. */
+  .sobre__entrada {
+    position: relative;
+    max-width: 52rem;
+    font-size: var(--size-2xl-fluid);
+    font-weight: var(--weight-light);
+    line-height: 1.35;
+    letter-spacing: -0.015em;
+    color: var(--text);
+    text-wrap: pretty;
+  }
+
+  .sobre__comillas {
+    display: block;
+    height: 2.5rem;
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 4.5rem;
+    line-height: 1;
+    color: var(--tono-naranjo);
+  }
+
+  .sobre__resto {
+    display: grid;
+    gap: 1rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .sobre__resto p {
+    max-width: 36rem;
+    font-size: var(--size-md);
+    line-height: 1.7;
+    color: var(--text-body);
+  }
+
+  @media (min-width: 900px) {
+    .sobre__comillas {
+      position: absolute;
+      top: -0.25rem;
+      left: -3rem;
+    }
+
+    .sobre__resto {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 3rem;
+    }
+  }
+</style>

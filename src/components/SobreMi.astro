@@ -1,0 +1,192 @@
+---
+import { Image } from 'astro:assets';
+import { sobreMi } from '../data/contenido';
+import foto from '../assets/foto-hector.jpg';
+
+// La ficha va como una credencial: foto, nombre y rol arriba; los datos
+// debajo, con la etiqueta en monoespaciada chica y el valor en texto normal.
+// Antes era una terminal ($ whoami): se descartó el 2 de octubre por ser
+// demasiado parecida a la de yurilopes.site y por hablar en jerga de
+// programador a un cliente que no lo es.
+---
+
+<section class="seccion" id="sobre-mi">
+  <div class="contenedor sobre">
+    <p class="rotulo rotulo--seccion sobre__rotulo">{sobreMi.rotulo}</p>
+
+    <h2 class="titulo-seccion sobre__titulo">
+      {sobreMi.titulo.antes}<span class="enfasis">{sobreMi.titulo.enfasis}</span>{sobreMi.titulo.despues}
+    </h2>
+
+    <p class="sobre__parrafo">{sobreMi.parrafo}</p>
+
+    <div class="credencial" data-revelar>
+      <!-- Foto generada al doble (144) para pantallas densas; se muestra a
+           72px, nunca más grande. -->
+      <div class="credencial__cabeza">
+        <Image class="credencial__foto" src={foto} alt={sobreMi.fotoAlt} width={144} />
+        <div class="credencial__identidad">
+          <p class="credencial__nombre">{sobreMi.credencial.nombre}</p>
+          <p class="credencial__rol">{sobreMi.credencial.rol}</p>
+        </div>
+      </div>
+
+      <dl class="credencial__datos">
+        {
+          sobreMi.ficha.map((dato) => (
+            <div class="credencial__dato">
+              <dt class="credencial__etiqueta">{dato.etiqueta}</dt>
+              <dd class="credencial__valor">{dato.valor}</dd>
+            </div>
+          ))
+        }
+      </dl>
+    </div>
+
+    <a class="boton boton--secundario sobre__enlace" href={sobreMi.enlace.href}>
+      {sobreMi.enlace.label} <span aria-hidden="true">→</span>
+    </a>
+  </div>
+</section>
+
+<style>
+  /* Teléfono: una columna en el orden del HTML (rótulo, título, bio,
+     credencial, enlace). */
+  .sobre {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .sobre__parrafo {
+    max-width: 40rem;
+    font-size: var(--size-md);
+    line-height: 1.62;
+    color: var(--text-body);
+  }
+
+  /* ---- Credencial ------------------------------------------------------- */
+
+  .credencial {
+    margin-block: 0.5rem 0.25rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+
+  .credencial__cabeza {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.25rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .credencial__foto {
+    flex-shrink: 0;
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    border: 2px solid var(--border-strong);
+    object-fit: cover;
+  }
+
+  .credencial__identidad {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    min-width: 0;
+  }
+
+  .credencial__nombre {
+    font-size: var(--size-lg);
+    font-weight: var(--weight-bold);
+    letter-spacing: -0.01em;
+    color: var(--text);
+  }
+
+  .credencial__rol {
+    font-size: var(--size-sm);
+    color: var(--text-soft);
+  }
+
+  .credencial__datos {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 0.5rem 1.25rem;
+  }
+
+  .credencial__dato {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding-block: 0.75rem;
+  }
+
+  .credencial__dato + .credencial__dato {
+    border-top: 1px solid var(--border);
+  }
+
+  .credencial__etiqueta {
+    font-family: var(--font-mono);
+    font-size: var(--size-xs);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-soft);
+  }
+
+  .credencial__valor {
+    margin: 0;
+    font-size: var(--size-base);
+    line-height: 1.5;
+    color: var(--text-body);
+    overflow-wrap: break-word;
+  }
+
+  /* Desde 900 px: dos columnas. A la izquierda rótulo, título, bio y
+     enlace; a la derecha la credencial, arriba. La última fila (1fr)
+     absorbe lo que la credencial mida de más, para que la izquierda no
+     se separe. 7/5, como el bento de "Qué hago". */
+  @media (min-width: 900px) {
+    .sobre {
+      display: grid;
+      grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+      grid-template-rows: auto auto auto auto 1fr;
+      grid-template-areas:
+        'rotulo credencial'
+        'titulo credencial'
+        'bio credencial'
+        'enlace credencial'
+        '. credencial';
+      column-gap: 3.5rem;
+      row-gap: 1rem;
+    }
+
+    .sobre__rotulo {
+      grid-area: rotulo;
+    }
+
+    .sobre__titulo {
+      grid-area: titulo;
+    }
+
+    .sobre__parrafo {
+      grid-area: bio;
+    }
+
+    .credencial {
+      grid-area: credencial;
+      align-self: start;
+      margin: 0;
+    }
+
+    /* Sin justify-self, el enlace se estiraría a todo el ancho y con él
+       su subrayado. */
+    .sobre__enlace {
+      grid-area: enlace;
+      justify-self: start;
+    }
+  }
+</style>

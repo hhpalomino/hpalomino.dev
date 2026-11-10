@@ -1,0 +1,201 @@
+---
+import { Image } from 'astro:assets';
+import { contacto, redes } from '../../data/site';
+import { encabezado } from '../../data/portafolio';
+import foto from '../../assets/foto-hector.jpg';
+
+// Encabezado de /portafolio: quién es, en una pasada. A la izquierda nombre,
+// rol, una línea y los botones; a la derecha la foto y los datos rápidos,
+// como una ficha. Fondo con la misma retícula y luz del hero del inicio.
+//
+// Es la portada de un CV, no de una página de ventas: nada de capturas ni
+// escenas acá (se probó una pila de ventanas el 10 de noviembre de 2026 y se
+// descartó por sentirse landing). La ficha lleva la línea de color y la luz
+// de las tarjetas del resto de la página.
+---
+
+<section class="encabezado">
+  <div class="contenedor encabezado__grilla">
+    <div class="encabezado__texto">
+      <p class="rotulo">{encabezado.rotulo}</p>
+      <h1 class="encabezado__nombre">{encabezado.nombre}</h1>
+      <p class="encabezado__rol">{encabezado.rol}</p>
+      <p class="encabezado__bajada">{encabezado.bajada}</p>
+
+      <div class="encabezado__acciones">
+        <a class="boton" href={redes.linkedin.url} target="_blank" rel="noopener me">
+          {encabezado.botonLinkedIn} <span aria-hidden="true">↗</span>
+        </a>
+        <a class="boton boton--secundario" href={encabezado.archivoCV} download>
+          {encabezado.botonCV} <span aria-hidden="true">↓</span>
+        </a>
+        <a class="boton boton--secundario" href={`mailto:${contacto.email}`}>{encabezado.botonCorreo}</a>
+      </div>
+    </div>
+
+    <aside class="ficha">
+      <Image class="ficha__foto" src={foto} alt={encabezado.fotoAlt} width={240} loading="eager" />
+      <dl class="ficha__datos">
+        {
+          encabezado.datos.map((dato) => (
+            <div class="ficha__dato">
+              <dt>{dato.etiqueta}</dt>
+              <dd>{dato.valor}</dd>
+            </div>
+          ))
+        }
+      </dl>
+    </aside>
+  </div>
+</section>
+
+<style>
+  .encabezado {
+    position: relative;
+    isolation: isolate;
+    overflow-x: clip;
+    padding-block: clamp(2rem, 1rem + 3vw, 3.5rem) var(--section-y);
+  }
+
+  /* Retícula y luz ámbar, como el hero del inicio. */
+  .encabezado::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image:
+      linear-gradient(var(--reticula) 1px, transparent 1px),
+      linear-gradient(90deg, var(--reticula) 1px, transparent 1px);
+    background-size: 64px 64px;
+    -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 30%, #000 40%, transparent 100%);
+    mask-image: radial-gradient(ellipse 70% 60% at 50% 30%, #000 40%, transparent 100%);
+  }
+
+  .encabezado::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    pointer-events: none;
+    background:
+      radial-gradient(35% 50% at 80% 40%, rgba(250, 204, 21, 0.08), transparent 70%),
+      radial-gradient(30% 40% at 92% 50%, color-mix(in srgb, var(--tono-turquesa) 7%, transparent), transparent 70%);
+  }
+
+  .encabezado__grilla {
+    display: grid;
+    gap: 2.5rem;
+    align-items: center;
+  }
+
+  .encabezado__texto {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .encabezado__nombre {
+    font-size: var(--size-3xl);
+    font-weight: var(--weight-light);
+    line-height: 1.04;
+    letter-spacing: -0.03em;
+    text-wrap: balance;
+  }
+
+  .encabezado__rol {
+    font-size: var(--size-xl);
+    font-weight: var(--weight-bold);
+    letter-spacing: -0.01em;
+    color: var(--accent);
+  }
+
+  .encabezado__bajada {
+    max-width: 38rem;
+    font-size: var(--size-md);
+    line-height: 1.62;
+    color: var(--text-body);
+  }
+
+  .encabezado__acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+  }
+
+  /* Ficha: foto arriba y los datos rápidos en filas. Línea de color arriba y
+     luz en la esquina, como las tarjetas de Experiencia y Herramientas. */
+  .ficha {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    padding: 1.5rem;
+    background:
+      radial-gradient(70% 50% at 100% 0%, color-mix(in srgb, var(--tono-turquesa) 10%, transparent), transparent 70%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.02)),
+      var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-caluga);
+    box-shadow: 0 24px 48px -24px rgb(0 0 0 / 0.6);
+  }
+
+  .ficha::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(to right, var(--tono-turquesa), var(--tono-violeta) 60%, transparent);
+  }
+
+  .ficha__foto {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 2px solid var(--border-strong);
+    object-fit: cover;
+  }
+
+  .ficha__datos {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+  }
+
+  .ficha__dato {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding-block: 0.75rem;
+  }
+
+  .ficha__dato + .ficha__dato {
+    border-top: 1px solid var(--border);
+  }
+
+  .ficha__dato dt {
+    font-family: var(--font-mono);
+    font-size: var(--size-xs);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-soft);
+  }
+
+  .ficha__dato dd {
+    margin: 0;
+    font-size: var(--size-base);
+    line-height: 1.5;
+    color: var(--text);
+  }
+
+  @media (min-width: 900px) {
+    .encabezado__grilla {
+      grid-template-columns: minmax(0, 1fr) 22rem;
+      gap: 4rem;
+    }
+  }
+</style>

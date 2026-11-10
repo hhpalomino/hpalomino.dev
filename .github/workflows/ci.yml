@@ -1,0 +1,22 @@
+# Revisión de cada cambio: tipos, pruebas y compilación. Vercel publica por su
+# cuenta; esto solo avisa si algo se rompió antes de que llegue al sitio.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run check
+      - run: npm test
+      - run: npm run build

@@ -1,0 +1,481 @@
+---
+import type { TipoEsquema } from '../data/contenido';
+
+// Dibujo esquemático al pie de cada cuadro de "Qué hago". Es forma, no
+// contenido: sin cifras, sin capturas, sin nombres de clientes. Todo sale
+// de tokens y va con aria-hidden. Los rótulos chicos ("tunegocio.cl", "Tu
+// sitio"…) son genéricos a propósito.
+
+interface Props {
+  tipo: TipoEsquema;
+}
+
+const { tipo } = Astro.props;
+
+// Alto de cada barra del gráfico del panel, en % del espacio disponible.
+// Es la silueta de un gráfico, no datos: no hay ejes ni números.
+const barras = [
+  { alto: 38, acento: false },
+  { alto: 56, acento: false },
+  { alto: 44, acento: false },
+  { alto: 72, acento: true },
+  { alto: 60, acento: false },
+  { alto: 88, acento: true },
+  { alto: 50, acento: false },
+  { alto: 66, acento: false },
+];
+
+// Sistemas que se conectan al sitio, en el orden de la lista del servicio.
+const nodos = ['Calendario', 'Pagos', 'Gestión'];
+---
+
+<div class={`esquema esquema--${tipo}`} aria-hidden="true">
+  {
+    tipo === 'sitio' && (
+      <>
+        <div class="navegador">
+          <div class="navegador__barra">
+            <span class="puntos">
+              <span></span>
+              <span></span>
+              <span></span>
+            </span>
+            <span class="navegador__url">tunegocio.cl</span>
+          </div>
+          <div class="pagina">
+            <div class="pagina__texto">
+              <span class="barra barra--titulo"></span>
+              <span class="barra barra--texto"></span>
+              <span class="barra barra--texto barra--corta"></span>
+              <span class="barra barra--boton"></span>
+            </div>
+            <span class="hueco"></span>
+          </div>
+        </div>
+
+        <div class="telefono">
+          <span class="telefono__muesca"></span>
+          <span class="hueco telefono__imagen"></span>
+          <span class="barra barra--titulo"></span>
+          <span class="barra barra--texto"></span>
+          <span class="barra barra--texto barra--corta"></span>
+          <span class="barra barra--boton"></span>
+        </div>
+      </>
+    )
+  }
+
+  {
+    tipo === 'panel' && (
+      <div class="tablero">
+        <div class="tablero__lateral">
+          <span class="barra barra--menu barra--activa"></span>
+          <span class="barra barra--menu"></span>
+          <span class="barra barra--menu barra--corta"></span>
+          <span class="barra barra--menu"></span>
+        </div>
+
+        <div class="tablero__cuerpo">
+          <div class="tablero__fichas">
+            {[0, 1, 2].map(() => (
+              <div class="ficha">
+                <span class="barra barra--etiqueta"></span>
+                <span class="barra barra--valor"></span>
+              </div>
+            ))}
+          </div>
+
+          <div class="grafico">
+            {barras.map((barra) => (
+              <span
+                class:list={['grafico__barra', { 'grafico__barra--acento': barra.acento }]}
+                style={`--alto: ${barra.alto}%`}
+              ></span>
+            ))}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  {
+    tipo === 'integracion' && (
+      <div class="red">
+        <span class="red__nodo red__nodo--centro">Tu sitio</span>
+        <span class="red__tronco"></span>
+        <div class="red__ramas">
+          {nodos.map((nodo, i) => (
+            <div class="red__rama">
+              <span class="red__linea">
+                <span class="red__dato" style={`--retraso: ${i * -0.8}s`}></span>
+              </span>
+              <span class="red__nodo">{nodo}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+</div>
+
+<style>
+  /* Caja común: mismo alto en los tres dibujos, para que en una fila del
+     bento queden parejos. */
+  .esquema {
+    position: relative;
+    height: 10.625rem; /* 170px */
+    padding: 1rem;
+    overflow: hidden;
+    background: var(--esquema-fondo);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+
+  /* Barras que hacen de texto, título y botón. */
+  .barra {
+    display: block;
+    flex-shrink: 0;
+    border-radius: 2px;
+  }
+
+  .barra--titulo {
+    width: 72%;
+    height: 8px;
+    background: var(--text);
+    opacity: 0.8;
+  }
+
+  .barra--texto {
+    width: 92%;
+    height: 4px;
+    background: var(--text-soft);
+    opacity: 0.4;
+  }
+
+  .barra--corta {
+    width: 64%;
+  }
+
+  .barra--boton {
+    width: 36%;
+    height: 12px;
+    margin-top: 4px;
+    border-radius: 3px;
+    background: var(--tono, var(--accent));
+  }
+
+  .hueco {
+    display: block;
+    border-radius: 4px;
+    background: var(--esquema-hueco);
+  }
+
+  /* ---- Sitio: ventana de navegador y, encima, un teléfono --------------- */
+
+  .navegador {
+    display: flex;
+    flex-direction: column;
+    width: calc(100% - 1.75rem);
+    height: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .navegador__barra {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    flex-shrink: 0;
+    height: 1.625rem;
+    padding-inline: 0.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .puntos {
+    display: inline-flex;
+    flex-shrink: 0;
+    gap: 4px;
+  }
+
+  .puntos > span {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--ventana-punto);
+  }
+
+  .navegador__url {
+    min-width: 0;
+    padding-inline: 0.5rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    border-radius: var(--radius-pill);
+    background: var(--esquema-hueco);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem; /* 11px: rótulo del dibujo, no texto de lectura */
+    line-height: 1rem;
+    color: var(--text-soft);
+  }
+
+  .pagina {
+    display: grid;
+    flex: 1;
+    grid-template-columns: minmax(0, 1fr) 38%;
+    gap: 0.75rem;
+    min-height: 0;
+    padding: 0.75rem;
+  }
+
+  .pagina__texto {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  /* El teléfono se monta sobre la esquina del navegador: "también se ve
+     bien en el teléfono". Fondo opaco para tapar lo que queda debajo. */
+  .telefono {
+    position: absolute;
+    right: 0.625rem;
+    bottom: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 44px;
+    height: 80px;
+    padding: 5px 5px 6px;
+    background: var(--bg);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius);
+  }
+
+  .telefono__muesca {
+    align-self: center;
+    width: 14px;
+    height: 3px;
+    margin-bottom: 2px;
+    border-radius: 2px;
+    background: var(--ventana-punto);
+  }
+
+  .telefono__imagen {
+    height: 18px;
+    border-radius: 2px;
+  }
+
+  .telefono .barra--titulo {
+    height: 4px;
+  }
+
+  .telefono .barra--texto {
+    height: 2px;
+  }
+
+  .telefono .barra--boton {
+    width: 55%;
+    height: 6px;
+    margin-top: auto;
+    border-radius: 2px;
+  }
+
+  /* ---- Panel: menú lateral, tres fichas y un gráfico de barras ---------- */
+
+  .tablero {
+    display: grid;
+    grid-template-columns: 2.75rem minmax(0, 1fr);
+    gap: 0.875rem;
+    height: 100%;
+  }
+
+  .tablero__lateral {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    padding: 4px 0.75rem 0 0;
+    border-right: 1px solid var(--border);
+  }
+
+  .barra--menu {
+    width: 100%;
+    height: 4px;
+    background: var(--text-soft);
+    opacity: 0.4;
+  }
+
+  .barra--menu.barra--corta {
+    width: 70%;
+  }
+
+  .barra--activa {
+    background: var(--tono, var(--accent));
+    opacity: 1;
+  }
+
+  .tablero__cuerpo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    min-width: 0;
+  }
+
+  .tablero__fichas {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+
+  .ficha {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 0.5rem;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+  }
+
+  .barra--etiqueta {
+    width: 60%;
+    height: 3px;
+    background: var(--text-soft);
+    opacity: 0.4;
+  }
+
+  .barra--valor {
+    width: 45%;
+    height: 8px;
+    background: var(--text);
+    opacity: 0.8;
+  }
+
+  .grafico {
+    display: flex;
+    flex: 1;
+    align-items: flex-end;
+    gap: 6px;
+    min-height: 0;
+    padding-inline: 2px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .grafico__barra {
+    flex: 1;
+    height: var(--alto);
+    border-radius: 2px 2px 0 0;
+    background: var(--esquema-barra);
+  }
+
+  .grafico__barra--acento {
+    background: var(--tono, var(--accent));
+  }
+
+  /* ---- Integración: el sitio al centro, conectado a tres sistemas ------- */
+
+  .red {
+    display: flex;
+    align-items: center;
+    height: 100%;
+  }
+
+  .red__nodo {
+    flex-shrink: 0;
+    min-width: 6.25rem;
+    padding: 0.375rem 0.625rem;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem; /* 11px */
+    line-height: 1.3;
+    text-align: center;
+    white-space: nowrap;
+    color: var(--text-soft);
+  }
+
+  .red__nodo--centro {
+    min-width: 0;
+    padding: 0.625rem 0.875rem;
+    background: color-mix(in srgb, var(--tono, var(--accent)) 10%, transparent);
+    border-color: color-mix(in srgb, var(--tono, var(--accent)) 55%, transparent);
+    font-size: var(--size-xs);
+    color: var(--text);
+  }
+
+  /* Tramo del sitio a la barra vertical que reparte a los tres sistemas. */
+  .red__tronco {
+    flex: 0 0 1rem;
+    border-top: 1px dashed var(--border-strong);
+  }
+
+  .red__ramas {
+    position: relative;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    align-self: stretch;
+    min-width: 0;
+  }
+
+  /* Barra vertical: va del centro de la primera rama al de la última (tres
+     ramas iguales: sus centros quedan a 1/6, 3/6 y 5/6 del alto). */
+  .red__ramas::before {
+    content: '';
+    position: absolute;
+    top: calc(100% / 6);
+    bottom: calc(100% / 6);
+    left: 0;
+    border-left: 1px dashed var(--border-strong);
+  }
+
+  .red__rama {
+    display: flex;
+    flex: 1;
+    align-items: center;
+  }
+
+  .red__linea {
+    position: relative;
+    flex: 1;
+    min-width: 1.25rem;
+    border-top: 1px dashed var(--border-strong);
+  }
+
+  /* El punto que viaja del sitio a cada sistema. Sin movimiento reducido:
+     queda quieto a mitad de camino. */
+  .red__dato {
+    position: absolute;
+    top: -3px;
+    left: 0;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--tono, var(--accent));
+    animation: viaje 2.4s linear infinite;
+    animation-delay: var(--retraso);
+  }
+
+  @keyframes viaje {
+    0% {
+      left: 0;
+      opacity: 0;
+    }
+    15%,
+    85% {
+      opacity: 1;
+    }
+    100% {
+      left: calc(100% - 5px);
+      opacity: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .red__dato {
+      left: calc(50% - 2.5px);
+      animation: none;
+    }
+  }
+</style>

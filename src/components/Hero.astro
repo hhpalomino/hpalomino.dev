@@ -1,0 +1,192 @@
+---
+import { contacto } from '../data/site';
+import { hero } from '../data/contenido';
+import IconoWhatsApp from './IconoWhatsApp.astro';
+import IlustracionHero from './IlustracionHero.astro';
+---
+
+<section class="hero" data-hero>
+  <div class="contenedor hero__grilla">
+    <div class="hero__texto">
+      <!-- Sin foto: la cara aparece una sola vez, en "Sobre mí". -->
+      <!-- Cada tramo del rótulo va sin cortes: en teléfono la línea se parte
+           en el punto medio y no deja "Brasil" solo en la segunda línea. -->
+      <p class="rotulo hero__rotulo">
+        {
+          hero.rotulo.split(' · ').map((tramo, i) => (
+            <>
+              {i > 0 && ' · '}
+              <span class="hero__tramo">{tramo}</span>
+            </>
+          ))
+        }
+      </p>
+
+      <h1 class="hero__titular">
+        {hero.titular.antes}<strong class="enfasis">{hero.titular.enfasis}</strong>
+      </h1>
+
+      <p class="hero__bajada">{hero.bajada}</p>
+
+      <ul class="hero__etiquetas">
+        {
+          hero.pastillas.map((pastilla) => (
+            <li>
+              <a class="hero__etiqueta" href={pastilla.href}>{pastilla.label}</a>
+            </li>
+          ))
+        }
+      </ul>
+
+      <div class="hero__acciones">
+        <a class="boton" href={contacto.whatsappCL.url}>
+          <IconoWhatsApp color="var(--accent-ink)" />
+          {hero.botonWhatsApp}
+        </a>
+        <!-- Sin JavaScript no hay ventana: el enlace baja a la sección de
+             contacto, donde están WhatsApp y el correo. -->
+        <a class="boton boton--secundario" href="#contacto" data-abrir-formulario aria-haspopup="dialog">{hero.enlaceFormulario}</a>
+      </div>
+    </div>
+
+    <!-- Ilustración decorativa: solo desde 1100px, donde hay columna para
+         ella. En teléfono el hero queda en texto y botón. Antes iba acá una
+         tarjeta de contacto, que repetía los canales. -->
+    <div class="hero__ilustracion">
+      <IlustracionHero />
+    </div>
+  </div>
+</section>
+
+<style>
+  /* overflow-x: clip: la ilustración en perspectiva se proyecta un poco
+     fuera de su caja y no debe generar desplazamiento horizontal. */
+  .hero {
+    position: relative;
+    isolation: isolate;
+    overflow-x: clip;
+    padding-block: clamp(2rem, 1rem + 2.5vw, 3rem) var(--section-y);
+  }
+
+  /* Retícula de fondo, solo en el hero: líneas de 1px cada 64px que se
+     desvanecen hacia los bordes. Queda detrás del contenido (isolation) y
+     dentro de la sección (inset 0), así que no agrega ancho. */
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image:
+      linear-gradient(var(--reticula) 1px, transparent 1px),
+      linear-gradient(90deg, var(--reticula) 1px, transparent 1px);
+    background-size: 64px 64px;
+    -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 30%, #000 40%, transparent 100%);
+    mask-image: radial-gradient(ellipse 70% 60% at 50% 30%, #000 40%, transparent 100%);
+  }
+
+  .hero__grilla {
+    display: grid;
+    gap: 2.5rem;
+    align-items: start;
+  }
+
+  .hero__texto {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    max-width: 44rem;
+  }
+
+  .hero__titular {
+    font-size: var(--size-3xl);
+    font-weight: var(--weight-light);
+    line-height: 1.06;
+    letter-spacing: -0.03em;
+    text-wrap: pretty;
+  }
+
+  /* El único énfasis en amarillo de la página: el resto de los títulos
+     destaca solo con negrita (global.css). */
+  .hero__titular .enfasis {
+    color: var(--accent);
+  }
+
+  .hero__tramo {
+    white-space: nowrap;
+  }
+
+  .hero__bajada {
+    max-width: 38rem;
+    font-size: var(--size-md);
+    line-height: 1.6;
+    color: var(--text-body);
+  }
+
+  /* Pastillas: enlaces a cada servicio de la página. */
+  .hero__etiquetas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+    /* Enlaces a cada servicio: chicos y neutros, para que no compitan con
+     los dos botones de abajo. 44px de alto para el dedo. */
+  .hero__etiqueta {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+    padding: 0 0.875rem;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-pill);
+    font-size: var(--size-sm);
+    line-height: 1.3;
+    color: var(--text-body);
+    white-space: nowrap;
+  }
+
+  .hero__etiqueta:hover {
+    border-color: var(--border-strong);
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text);
+  }
+
+  .hero__acciones {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .hero__acciones .boton {
+    width: 100%;
+  }
+
+  .hero__ilustracion {
+    display: none;
+  }
+
+  @media (min-width: 900px) {
+    .hero__acciones .boton {
+      width: auto;
+    }
+  }
+
+  /* La ilustración necesita una columna de 26rem y que al texto le sobre
+     espacio: recién desde 1100px. Más angosto, el hero va en una columna. */
+  @media (min-width: 1100px) {
+    .hero__grilla {
+      grid-template-columns: minmax(0, 1fr) 26rem;
+      gap: 3rem;
+      align-items: center;
+    }
+
+    .hero__ilustracion {
+      display: block;
+    }
+  }
+</style>

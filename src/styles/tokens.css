@@ -1,0 +1,114 @@
+/* ==========================================================================
+   TOKENS DE DISEÑO
+   Este es el archivo que se toca para ajustar el aspecto del sitio. Los
+   componentes no llevan colores ni tamaños literales: todos salen de acá.
+
+   Estado: primera versión. El diseño no está cerrado — se avanzó para tener
+   algo montado y ajustar sobre eso. Lo que sigue abierto está marcado con
+   PENDIENTE más abajo.
+   ========================================================================== */
+
+:root {
+  /* ---- Fondo y superficies ---------------------------------------------
+     Azul muy oscuro con grises fríos (escala "gray" de Tailwind). Se probó
+     pasar a neutros cálidos ("stone") el 3 de octubre de 2026 y se descartó:
+     el dueño quiere quedarse con el azul oscuro. */
+  --bg-rgb: 3 7 18;           /* el fondo en canales, para usarlo translúcido */
+  --bg: rgb(var(--bg-rgb));
+  --surface: rgba(17, 24, 39, 0.8);
+  --surface-accent: rgba(234, 179, 8, 0.05);
+  --border: #1f2937;
+  --border-strong: #374151;   /* bordes de botones secundarios y detalles neutros */
+  --border-accent: rgba(250, 204, 21, 0.25);
+
+  /* ---- Texto: cuatro niveles, no dos ----------------------------------- */
+  --text: #ffffff;          /* titulares y nombres                 16,8:1 */
+  --text-body: #d1d5db;     /* párrafos de lectura                 13,1:1 */
+  --text-soft: #9ca3af;     /* descripciones y metadatos            7,9:1 */
+
+  /* ---- Error: solo para avisos de formulario ---------------------------
+     Rojo suave, legible sobre el fondo oscuro: 7,3:1 sobre --bg y 6,6:1
+     sobre --surface. Para texto de error y el borde del campo inválido. */
+  --error: #f87171;
+
+  /* ---- El acento: un tono, cuatro intensidades -------------------------
+     PENDIENTE: el tono no está decidido. Cambiar estas cuatro líneas
+     cambia el sitio entero. */
+  --accent: #facc15;        /* acción: botones y enlaces                   */
+  --accent-soft: #fef08a;   /* énfasis dentro de una frase                 */
+  --accent-pale: #fef9c3;   /* citas destacadas                              */
+  --accent-ink: #030712;    /* tinta sobre el acento                       */
+  --accent-line: rgba(250, 204, 21, 0.45);
+
+  /* ---- Capas del fondo -------------------------------------------------
+     El halo entra desde arriba al centro. El grano lleva el alfa aplanado
+     con feColorMatrix: sin eso, feTurbulence produce ruido semitransparente
+     que a baja opacidad desaparece y no se ve nada. */
+  --halo: radial-gradient(80% 80% at 50% -20%, rgba(251, 191, 36, 0.08), rgba(0, 0, 0, 0));
+  /* Líneas de la retícula del hero: apenas se ven, dan profundidad sin
+     competir con el texto. */
+  --reticula: rgba(255, 255, 255, 0.035);
+
+  /* ---- Profundidad (3 de octubre de 2026) ------------------------------
+     El sitio se sentía plano: un solo fondo y un solo color. Ahora hay
+     bandas (secciones alternas un tono más claro, translúcido para que el
+     grano siga viéndose) y un tono propio por servicio. */
+  --banda: rgba(148, 163, 184, 0.045);
+  --tono-naranjo: #fb923c;   /* Sitios web       */
+  --tono-turquesa: #2dd4bf;  /* Software a medida */
+  --tono-violeta: #a78bfa;   /* Integraciones     */
+  --en-linea: #4ade80;       /* punto de "En línea" en el portafolio */
+  /* Fondo de la cabecera flotante: el mismo --bg, translúcido, para que el
+     desenfoque deje adivinar lo que pasa por debajo. */
+  --cabecera-fondo: rgb(var(--bg-rgb) / 0.6);
+
+  /* ---- Ilustraciones y marcos ------------------------------------------
+     Blancos muy bajos para dibujar esquemas y ventanas de navegador. Son
+     líneas y rellenos de fondo, nunca texto. */
+  --ventana-punto: rgba(255, 255, 255, 0.15);  /* los tres puntos de la barra */
+  --esquema-fondo: rgba(255, 255, 255, 0.02);  /* caja de la ilustración     */
+  --esquema-hueco: rgba(255, 255, 255, 0.06);  /* hueco de imagen             */
+  --esquema-barra: rgba(255, 255, 255, 0.12);  /* barras neutras del gráfico  */
+  --grano: url("data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22160%22%20height%3D%22160%22%3E%3Cfilter%20id%3D%22g%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%220.8%22%20numOctaves%3D%224%22%20stitchTiles%3D%22stitch%22%2F%3E%3CfeColorMatrix%20type%3D%22matrix%22%20values%3D%220.33%200.33%200.33%200%200%20%200.33%200.33%200.33%200%200%20%200.33%200.33%200.33%200%200%20%200%200%200%200%201%22%2F%3E%3C%2Ffilter%3E%3Crect%20width%3D%22160%22%20height%3D%22160%22%20filter%3D%22url(%23g)%22%20opacity%3D%220.07%22%2F%3E%3C%2Fsvg%3E");
+
+  /* ---- Tipografía ------------------------------------------------------
+     PENDIENTE: la tipografía tampoco está decidida. Había cinco opciones en
+     el canvas y ninguna elegida; va Epilogue porque resuelve que DM Sans es
+     la misma fuente de la competencia directa. */
+  --font-body: 'Epilogue', system-ui, -apple-system, 'Helvetica Neue', sans-serif;
+  /* Monoespaciada SOLO para detalles chicos: rótulos numerados, la terminal
+     y los marcos de las capturas. Nunca para texto de lectura. */
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Escala apretada: pocos tamaños, usados muchas veces */
+  --size-xs: 0.75rem;   /* 12px — etiquetas en versalita                   */
+  --size-sm: 0.875rem;  /* 14px — metadatos                                */
+  --size-base: 1rem;    /* 16px — mínimo de cuerpo en teléfono             */
+  --size-md: 1.0625rem; /* 17px                                            */
+  --size-lg: 1.125rem;  /* 18px — párrafo del hero                         */
+  --size-xl: 1.5rem;    /* 24px — títulos de tarjeta (antes 28)            */
+  --size-2xl: 1.75rem;  /* 28px (antes 34)                                 */
+  /* Escala de escritorio bajada el 1 de octubre: el hero no cabía en una
+     pantalla de 1480×830. Teléfono queda igual (los mínimos no cambian). */
+  --size-3xl: clamp(2.25rem, 1.4rem + 2.6vw, 3.25rem); /* titular: 36px tel. · 52px máx. */
+  --size-2xl-fluid: clamp(1.625rem, 1.2rem + 1.6vw, 2.125rem); /* títulos: 26 · 34 */
+
+  --weight-light: 300;
+  --weight-medium: 500;
+  --weight-bold: 700;
+
+  /* ---- Medidas --------------------------------------------------------- */
+  --container: 1200px;
+  --gutter: 1.25rem;       /* 20px en teléfono — el mínimo que PRODUCT exige */
+  --gutter-wide: 3.75rem;  /* 60px en escritorio                             */
+  /* Redondeo bajado el 2 de octubre: Héctor lo sentía todo muy redondo. */
+  --radius: 8px;
+  --radius-lg: 10px;
+  --radius-caluga: 14px;   /* tarjetas grandes de "Qué hago" (antes 32px) */
+  --radius-pill: 10px;     /* botones y pastillas: ya no son píldora entera */
+  --section-y: clamp(2.25rem, 1.5rem + 2.2vw, 3.5rem);
+
+  /* Área de toque mínima. Los enlaces de texto en teléfono deben llegar
+     a esto; medirlo de nuevo si se cambia la escala tipográfica. */
+  --tap: 44px;
+}

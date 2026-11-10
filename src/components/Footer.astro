@@ -1,0 +1,92 @@
+---
+import { site, nav, redes } from '../data/site';
+import { accesibilidad } from '../data/contenido';
+
+const anio = new Date().getFullYear();
+---
+
+<footer class="pie">
+  <div class="contenedor pie__contenido">
+    <!-- En teléfono la cabecera solo lleva marca y acción: estas dos rutas
+         quedan accesibles acá, que si no son inalcanzables en el dispositivo
+         principal de lectura. -->
+    <nav class="pie__nav" aria-label={accesibilidad.navSecundaria}>
+      {nav.map((item) => <a class="pie__enlace" href={item.href}>{item.label}</a>)}
+    </nav>
+
+    <div class="pie__fila">
+      <span>{site.nombreCompleto}</span>
+      <span>{site.dominio} · {anio}</span>
+      <a class="pie__enlace-red" href={redes.linkedin.url} rel="me noopener" target="_blank">{redes.linkedin.label}</a>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .pie {
+    border-top: 1px solid var(--border);
+  }
+
+  .pie__contenido {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding-block: 1rem 2rem;
+  }
+
+  .pie__nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 1.5rem;
+  }
+
+  .pie__enlace {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+    color: var(--text-soft);
+    font-size: var(--size-base);
+  }
+
+  .pie__enlace:hover {
+    color: var(--text);
+  }
+
+  .pie__enlace-red {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+    color: var(--text-soft);
+  }
+
+  .pie__enlace-red:hover {
+    color: var(--text);
+  }
+
+  .pie__fila {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    font-size: var(--size-sm);
+    color: var(--text-soft);
+  }
+
+  @media (min-width: 640px) {
+    /* Desde acá la cabecera ya muestra las rutas; en el pie sobran. */
+    .pie__nav {
+      display: none;
+    }
+  }
+
+  @media (min-width: 768px) {
+    .pie__contenido {
+      padding-block: 1.5rem;
+    }
+
+    .pie__fila {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+    }
+  }
+</style>

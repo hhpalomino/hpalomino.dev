@@ -1,0 +1,126 @@
+---
+import '../styles/global.css';
+import { site, contacto, redes } from '../data/site';
+import { accesibilidad } from '../data/contenido';
+
+interface Props {
+  titulo?: string;
+  descripcion?: string;
+  /** Imagen para compartir el enlace (1200×630, en public/). */
+  imagen?: string;
+  /** Datos estructurados extra de la página, además de la persona. */
+  datosEstructurados?: Record<string, unknown>[];
+}
+
+const {
+  titulo = site.tituloSEO,
+  descripcion = site.descripcionSEO,
+  imagen = '/og.jpg',
+  datosEstructurados = [],
+} = Astro.props;
+const base = Astro.site ?? `https://${site.dominio}`;
+const canonical = new URL(Astro.url.pathname, base);
+const imagenUrl = new URL(imagen, base);
+
+// La persona va en todas las páginas: Google la usa para el panel con el
+// nombre, el cargo y los perfiles. Sin teléfono: el WhatsApp ya está a la
+// vista y no hace falta repetirlo para buscadores.
+const persona = {
+  '@type': 'Person',
+  '@id': `${base.toString().replace(/\/$/, '')}/#persona`,
+  name: site.nombreCompleto,
+  jobTitle: 'Desarrollador de software',
+  url: base.toString(),
+  email: `mailto:${contacto.email}`,
+  image: imagenUrl.href,
+  sameAs: [redes.linkedin.url],
+  address: { '@type': 'PostalAddress', addressLocality: 'Santiago', addressCountry: 'CL' },
+  knowsAbout: ['.NET', 'SQL Server', 'Softland ERP', 'Desarrollo web', 'Integración de sistemas'],
+};
+const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': [persona, ...datosEstructurados] });
+---
+
+<!doctype html>
+<html lang={site.idioma}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/favicon.ico" />
+    <meta name="generator" content={Astro.generator} />
+
+    <title>{titulo}</title>
+    <meta name="description" content={descripcion} />
+    <link rel="canonical" href={canonical.href} />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="es_CL" />
+    <meta property="og:title" content={titulo} />
+    <meta property="og:description" content={descripcion} />
+    <meta property="og:url" content={canonical.href} />
+    <meta property="og:image" content={imagenUrl.href} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={titulo} />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <script type="application/ld+json" set:html={jsonLd} />
+
+    <!-- Antes que el CSS se aplique: marca que hay JavaScript, para que la
+         aparición al hacer scroll solo esconda contenido cuando de verdad
+         hay quien lo vuelva a mostrar. -->
+    <script is:inline>document.documentElement.classList.add('js');</script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- JetBrains Mono es solo para detalles (ver --font-mono en tokens.css). -->
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Epilogue:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap"
+    />
+  </head>
+  <body>
+    <a class="saltar" href="#contenido">{accesibilidad.saltar}</a>
+    <slot />
+
+    <!-- Aparición al hacer scroll: cada [data-revelar] recibe `revelado` la
+         primera vez que entra en pantalla y deja de observarse. Sin
+         IntersectionObserver, se muestran todos de inmediato. -->
+    <script is:inline>
+      (function () {
+        var elementos = document.querySelectorAll('[data-revelar]');
+        if (!('IntersectionObserver' in window)) {
+          elementos.forEach(function (el) { el.classList.add('revelado'); });
+          return;
+        }
+        var observador = new IntersectionObserver(function (entradas) {
+          entradas.forEach(function (entrada) {
+            if (!entrada.isIntersecting) return;
+            entrada.target.classList.add('revelado');
+            observador.unobserve(entrada.target);
+          });
+        }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
+        elementos.forEach(function (el) { observador.observe(el); });
+      })();
+    </script>
+  </body>
+</html>
+
+<style>
+  /* Visible solo al tabular: lo primero que encuentra quien navega por teclado.
+     Va por encima de la cabecera flotante (z-index 30). */
+  .saltar {
+    position: absolute;
+    left: -9999px;
+    top: 0;
+    z-index: 40;
+    background: var(--accent);
+    color: var(--accent-ink);
+    padding: 0.75rem 1.25rem;
+    font-weight: var(--weight-bold);
+  }
+
+  .saltar:focus {
+    left: 0;
+  }
+</style>

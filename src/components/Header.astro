@@ -1,0 +1,126 @@
+---
+import { site, nav, contacto } from '../data/site';
+import { cabecera, accesibilidad } from '../data/contenido';
+import IconoWhatsApp from './IconoWhatsApp.astro';
+
+// La acción lleva el logo de WhatsApp (como en yurilopes.site): "Escríbeme"
+// solo no decía por dónde.
+---
+
+<header class="cabecera">
+  <div class="cabecera__fila">
+    <a class="cabecera__marca" href="/">{site.nombre}</a>
+
+    <nav class="cabecera__nav" aria-label={accesibilidad.navPrincipal}>
+      {nav.map((item) => <a class="cabecera__enlace" href={item.href}>{item.label}</a>)}
+      <a class="boton cabecera__cta" href={contacto.whatsappCL.url} aria-label={cabecera.ctaAccesible}>
+        <IconoWhatsApp tamano={17} color="var(--accent-ink)" />
+        {cabecera.cta}
+      </a>
+    </nav>
+  </div>
+</header>
+
+<style>
+  /* Cabecera flotante: acompaña el scroll despegada de los bordes, como una
+     barra translúcida. El margen lateral hace que la barra nunca toque el
+     borde de la pantalla. Los saltos a un ancla la esquivan con el
+     scroll-padding-top de global.css. */
+  .cabecera {
+    position: sticky;
+    top: 0.75rem;
+    z-index: 30;
+    margin: 0.75rem 0.5rem 0;
+  }
+
+  /* Padding lateral 0.75rem + margen 0.5rem = 1.25rem (--gutter): la marca
+     queda alineada con el texto de las secciones. */
+  .cabecera__fila {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    max-width: var(--container);
+    margin-inline: auto;
+    padding: 0.375rem 0.5rem 0.375rem 0.75rem;
+    background: var(--cabecera-fondo);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+  }
+
+  .cabecera__marca {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+    font-size: 1.0625rem;
+    font-weight: var(--weight-bold);
+    letter-spacing: -0.02em;
+    color: var(--text);
+    white-space: nowrap;
+  }
+
+  .cabecera__nav {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  /* A 375px la marca más tres elementos no caben: suman 381 contra 335
+     disponibles. En teléfono la cabecera deja solo marca y acción; las dos
+     rutas quedan accesibles desde el pie. */
+  .cabecera__enlace {
+    display: none;
+    align-items: center;
+    min-height: var(--tap);
+    padding-inline: 0.5rem;
+    color: var(--text-soft);
+    font-size: var(--size-sm);
+  }
+
+  .cabecera__enlace:hover {
+    color: var(--text);
+  }
+
+  /* En teléfono el botón se achica pero nunca baja del área de toque */
+  .cabecera__cta {
+    gap: 0.5rem;
+    padding: 0.6875rem 1rem;
+    font-size: var(--size-sm);
+  }
+
+  @media (min-width: 640px) {
+    .cabecera__enlace {
+      display: inline-flex;
+    }
+  }
+
+  /* Desde 768 px la barra se ensancha hasta el borde de la columna de texto
+     más 1.25rem a cada lado; con ese mismo padding, la marca queda alineada
+     con el texto de las secciones (--gutter-wide). */
+  @media (min-width: 768px) {
+    .cabecera {
+      margin-inline: calc(var(--gutter-wide) - 1.25rem);
+    }
+
+    .cabecera__fila {
+      max-width: calc(var(--container) - 2 * var(--gutter-wide) + 2.5rem);
+      padding: 0.375rem 0.5rem 0.375rem 1.25rem;
+    }
+
+    .cabecera__nav {
+      gap: 1.5rem;
+    }
+
+    .cabecera__enlace {
+      padding-inline: 0;
+      font-size: 0.9375rem;
+    }
+
+    .cabecera__cta {
+      padding: 0.6875rem 1.25rem;
+      font-size: 0.9375rem;
+    }
+  }
+</style>

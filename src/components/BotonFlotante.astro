@@ -1,0 +1,66 @@
+---
+import { contacto } from '../data/site';
+import { hero } from '../data/contenido';
+import IconoWhatsApp from './IconoWhatsApp.astro';
+
+// En teléfono el botón acompaña el scroll. En escritorio no hace falta: la
+// cabecera, que flota siempre arriba, ya lleva el botón de WhatsApp.
+---
+
+<a class="flotante" data-flotante href={contacto.whatsappCL.url} aria-label={hero.botonWhatsApp}>
+  <IconoWhatsApp tamano={26} color="var(--accent-ink)" />
+</a>
+
+<script is:inline>
+  (function () {
+    var boton = document.querySelector('[data-flotante]');
+    var hero = document.querySelector('[data-hero]');
+    if (!boton || !hero || !('IntersectionObserver' in window)) return;
+    new IntersectionObserver(function (entradas) {
+      boton.classList.toggle('flotante--oculto', entradas[0].isIntersecting);
+    }, { threshold: 0.15 }).observe(hero);
+  })();
+</script>
+
+<style>
+  .flotante {
+    position: fixed;
+    right: 1rem;
+    bottom: calc(1rem + env(safe-area-inset-bottom));
+    z-index: 20;
+    display: grid;
+    place-items: center;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+  }
+
+  .flotante--oculto {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .flotante:hover {
+    background: var(--accent-soft);
+  }
+
+  /* Reserva espacio al final para que el botón nunca tape la última
+     tarjeta de contacto. */
+  :global(main) {
+    padding-bottom: 5rem;
+  }
+
+  @media (min-width: 900px) {
+    .flotante {
+      display: none;
+    }
+
+    :global(main) {
+      padding-bottom: 0;
+    }
+  }
+</style>

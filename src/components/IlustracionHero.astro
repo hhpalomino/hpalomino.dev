@@ -1,0 +1,314 @@
+---
+// Ilustración del hero: tres productos apilados en perspectiva (el sitio de
+// una cafetería, el panel de una tienda y una agenda en el teléfono) sobre
+// una base. Representa lo que se construye, no la conversación: la idea de
+// mostrar un chat se descartó el 3 de octubre de 2026.
+//
+// Sin texto, solo formas. Cada pieza lleva la paleta de un negocio
+// inventado, como pasaría con clientes reales; por eso estos colores viven
+// acá y no en tokens.css: no son del sitio, son de "los clientes". El
+// amarillo del sitio no aparece en la ilustración.
+//
+// Animación (la de la primera versión probada en
+// design/hero-ilustracion-v2.html): las piezas bajan a su lugar una tras otra
+// y las barras del panel crecen; el conjunto flota apenas. Se repite cada 9 s.
+// Con movimiento reducido queda quieta y completa.
+---
+
+<div class="ilustracion" aria-hidden="true">
+  <div class="escena">
+    <div class="pieza base"></div>
+
+    <div class="pieza sitio cafe">
+      <div class="barra"><i></i><i></i><i></i></div>
+      <div class="cuerpo">
+        <span class="linea linea--fuerte" style="width: 60%"></span>
+        <div class="foto"></div>
+        <span class="boton-falso"></span>
+      </div>
+    </div>
+
+    <div class="pieza panel tienda">
+      <div class="cuerpo">
+        <div class="barras">
+          <i style="--alto: 40%"></i>
+          <i style="--alto: 65%"></i>
+          <i style="--alto: 52%"></i>
+          <i class="destacada" style="--alto: 90%"></i>
+          <i style="--alto: 70%"></i>
+        </div>
+      </div>
+    </div>
+
+    <div class="pieza telefono agenda">
+      <div class="telefono__cabeza"></div>
+      <div class="telefono__horas"><i></i><i class="destacada"></i><i></i><i></i></div>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Paletas de los negocios inventados: fondo, fondo 2, tinta, línea,
+     acento. */
+  .cafe {
+    --f: #f6efe4;
+    --f2: #ead9c2;
+    --t: #4a2e1f;
+    --l: #d8c3a5;
+    --a: #c8643b;
+  }
+
+  .tienda {
+    --f: #ffffff;
+    --f2: #eef2f7;
+    --l: #dbe3ee;
+    --a: #0ea5a4;
+    --a2: #7dd3c8;
+  }
+
+  .agenda {
+    --f: #eef0ff;
+    --f2: #ffffff;
+    --a: #6366f1;
+  }
+
+  .base {
+    --f: #0f2a26;
+  }
+
+  .ilustracion {
+    position: relative;
+    isolation: isolate;
+    height: 420px;
+    perspective: 1400px;
+  }
+
+  /* Luz detrás de la escena: ámbar al centro y un toque turquesa abajo,
+     los tonos de los productos. Sin desenfoque: el radial ya es suave. */
+  .ilustracion::before {
+    content: '';
+    position: absolute;
+    inset: -15% -10%;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(45% 45% at 50% 45%, rgba(250, 204, 21, 0.1), transparent 70%),
+      radial-gradient(35% 35% at 70% 80%, rgba(45, 212, 191, 0.08), transparent 70%);
+  }
+
+  .escena {
+    position: absolute;
+    inset: 0;
+    transform-style: preserve-3d;
+    transform: rotateX(52deg) rotateZ(-38deg) translate(20px, -10px);
+    animation: flota 8s ease-in-out infinite;
+  }
+
+  @keyframes flota {
+    0%,
+    100% {
+      translate: 0 0 0;
+    }
+
+    50% {
+      translate: 0 0 14px;
+    }
+  }
+
+  .pieza {
+    position: absolute;
+    overflow: hidden;
+    background: var(--f);
+    border-radius: 12px;
+    box-shadow: -20px 24px 0 rgba(0, 0, 0, 0.4);
+  }
+
+  .base {
+    left: 6%;
+    top: 8%;
+    width: 84%;
+    height: 80%;
+    border-radius: 18px;
+  }
+
+  .sitio {
+    left: 11%;
+    top: 13%;
+    width: 50%;
+    height: 42%;
+    transform: translateZ(40px);
+  }
+
+  .panel {
+    left: 54%;
+    top: 38%;
+    width: 32%;
+    height: 34%;
+    transform: translateZ(80px);
+  }
+
+  .telefono {
+    left: 22%;
+    top: 60%;
+    width: 16%;
+    height: 34%;
+    border-radius: 14px;
+    transform: translateZ(120px);
+  }
+
+  /* ---- Contenido de cada pieza ------------------------------------------ */
+
+  .barra {
+    display: flex;
+    gap: 5px;
+    padding: 9px 11px;
+    background: var(--f2);
+  }
+
+  .barra i {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--l);
+  }
+
+  .cuerpo {
+    display: grid;
+    gap: 7px;
+    padding: 12px;
+  }
+
+  .linea--fuerte {
+    display: block;
+    height: 13px;
+    border-radius: 4px;
+    background: var(--t);
+  }
+
+  .foto {
+    height: 34px;
+    border-radius: 6px;
+    background: linear-gradient(135deg, #d9a77a, #8c5a3c);
+  }
+
+  .boton-falso {
+    width: 52px;
+    height: 14px;
+    border-radius: 7px;
+    background: var(--a);
+  }
+
+  .barras {
+    display: flex;
+    align-items: flex-end;
+    gap: 5px;
+    height: 52px;
+  }
+
+  .barras i {
+    flex: 1;
+    height: var(--alto);
+    border-radius: 3px 3px 0 0;
+    background: var(--a2);
+    transform-origin: bottom;
+    animation: crece 9s infinite;
+    animation-delay: 0.7s;
+  }
+
+  .barras .destacada {
+    background: var(--a);
+  }
+
+  .telefono__cabeza {
+    height: 22px;
+    background: var(--a);
+  }
+
+  .telefono__horas {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+    padding: 6px;
+  }
+
+  .telefono__horas i {
+    height: 12px;
+    border-radius: 3px;
+    background: var(--f2);
+  }
+
+  .telefono__horas .destacada {
+    background: var(--a);
+  }
+
+  /* ---- Entrada: cada pieza baja a su lugar, una tras otra --------------- */
+
+  .sitio,
+  .panel,
+  .telefono {
+    opacity: 0;
+    animation: baja 9s infinite;
+  }
+
+  .panel {
+    animation-delay: 0.7s;
+  }
+
+  .telefono {
+    animation-delay: 1.4s;
+  }
+
+  /* `translate` y no `transform`: así no pisa el translateZ que ubica cada
+     pieza en su capa. */
+  @keyframes baja {
+    0% {
+      opacity: 0;
+      translate: 0 0 40px;
+    }
+
+    7%,
+    88% {
+      opacity: 1;
+      translate: none;
+    }
+
+    97%,
+    100% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes crece {
+    0%,
+    9% {
+      transform: scaleY(0);
+    }
+
+    20%,
+    88% {
+      transform: scaleY(1);
+    }
+
+    100% {
+      transform: scaleY(0);
+    }
+  }
+
+  /* Movimiento reducido: quieta y completa. (La regla global solo acorta
+     las animaciones, y estas empiezan invisibles.) */
+  @media (prefers-reduced-motion: reduce) {
+    .escena,
+    .sitio,
+    .panel,
+    .telefono,
+    .barras i {
+      animation: none;
+    }
+
+    .sitio,
+    .panel,
+    .telefono {
+      opacity: 1;
+    }
+  }
+</style>

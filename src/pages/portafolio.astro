@@ -1,0 +1,30 @@
+---
+import Base from '../layouts/Base.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import Encabezado from '../components/portafolio/Encabezado.astro';
+import Experiencia from '../components/portafolio/Experiencia.astro';
+import Proyectos from '../components/portafolio/Proyectos.astro';
+import Herramientas from '../components/portafolio/Herramientas.astro';
+import SobreMiLargo from '../components/portafolio/SobreMiLargo.astro';
+import ContactoCorto from '../components/portafolio/ContactoCorto.astro';
+import { seo } from '../data/portafolio';
+
+// Página CV, para empresas y consultoras que evalúan contratar a Héctor
+// (PRODUCT.md). Orden: quién es, dónde ha trabajado, qué ha construido, con
+// qué herramientas, el relato personal y cómo escribirle. La experiencia va
+// antes que los proyectos: es lo primero que mira quien contrata.
+---
+
+<Base titulo={seo.titulo} descripcion={seo.descripcion} imagen="/og-portafolio.jpg">
+  <Header />
+  <main id="contenido">
+    <Encabezado />
+    <Experiencia />
+    <Proyectos />
+    <Herramientas />
+    <SobreMiLargo />
+    <ContactoCorto />
+  </main>
+  <Footer />
+</Base>

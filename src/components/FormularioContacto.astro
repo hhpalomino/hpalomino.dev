@@ -1,0 +1,678 @@
+---
+import { contacto, limitesFormulario as limites } from '../data/site';
+import { accesibilidad, contacto as texto } from '../data/contenido';
+
+// Formulario de contacto, en una ventana encima de la página (<dialog>), como
+// en titacode.com. Lo abre cualquier elemento con `data-abrir-formulario`
+// (hoy, la tarjeta "Formulario" de la sección de contacto). El script valida,
+// envía JSON a /api/contacto y muestra el resultado sin recargar.
+// Configuración: docs/formulario.md.
+//
+// Sin JavaScript la ventana no se puede abrir, y tampoco funcionaría
+// Turnstile; por eso la tarjeta que la abre se oculta sin JS y quedan
+// WhatsApp y el correo. El endpoint conserva el camino sin JS (POST normal y
+// redirección con ?contacto=enviado|error): si llega ese parámetro, la
+// ventana se abre con el aviso.
+
+const f = texto.formulario;
+
+// Clave de sitio de PRUEBA de Turnstile, publicada por Cloudflare: el widget
+// aprueba siempre. Es la que se usa en desarrollo si no hay clave en .env.
+const TURNSTILE_SITIO_PRUEBA = '1x00000000000000000000AA';
+
+// La clave del sitio queda escrita en el HTML al compilar. En producción
+// PUBLIC_TURNSTILE_SITE_KEY TIENE que estar definida en Vercel antes del
+// despliegue: si falta, el widget usa la clave de prueba, el servidor (con la
+// clave secreta real) la rechaza y el formulario no envía. La compilación no
+// se corta por eso; queda solo el aviso en el log.
+const siteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || TURNSTILE_SITIO_PRUEBA;
+if (import.meta.env.PROD && !import.meta.env.PUBLIC_TURNSTILE_SITE_KEY) {
+  console.warn('[formulario] Falta PUBLIC_TURNSTILE_SITE_KEY: el widget usa la clave de prueba de Turnstile.');
+}
+
+// El texto de error lleva {email}: se reemplaza por el correo, como enlace.
+const [errorAntes, errorDespues] = f.error.split('{email}');
+---
+
+<dialog class="modal" id="formulario-contacto" aria-labelledby="fc-titulo" data-formulario>
+  <div class="modal__panel">
+    <div class="modal__cabeza">
+      <div class="modal__textos">
+        <h2 class="modal__titulo" id="fc-titulo">{f.titulo}</h2>
+        <p class="modal__bajada">{f.bajada}</p>
+      </div>
+      <!-- Primer elemento enfocable: showModal() deja el foco acá, no en un
+           campo, para que el teléfono no abra el teclado de golpe. -->
+      <button class="modal__cerrar" type="button" data-cerrar aria-label={accesibilidad.cerrarFormulario}>
+        <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
+          <path d="M4 4l10 10M14 4L4 14" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" fill="none"></path>
+        </svg>
+      </button>
+    </div>
+
+    <form class="formulario__form" method="post" action="/api/contacto">
+      <!-- Nombre y contacto van lado a lado desde 600px. Las ayudas van bajo
+           el campo, para que los dos campos de la fila queden a la misma
+           altura. -->
+      <div class="formulario__fila">
+        <div class="campo">
+          <label class="campo__label" for="fc-nombre">{f.campos.nombre.label}</label>
+          <input
+            class="campo__control"
+            id="fc-nombre"
+            name="nombre"
+            type="text"
+            autocomplete="name"
+            autocapitalize="words"
+            required
+            minlength={limites.nombre.min}
+            maxlength={limites.nombre.max}
+            aria-describedby="fc-nombre-error"
+          />
+          <p class="campo__error" id="fc-nombre-error" data-mensaje={f.errores.nombre}></p>
+        </div>
+
+        <div class="campo">
+          <label class="campo__label" for="fc-contacto">{f.campos.contacto.label}</label>
+          <input
+            class="campo__control"
+            id="fc-contacto"
+            name="contacto"
+            type="text"
+            autocomplete="on"
+            autocapitalize="off"
+            spellcheck="false"
+            required
+            minlength={limites.contacto.min}
+            maxlength={limites.contacto.max}
+            aria-describedby="fc-contacto-ayuda fc-contacto-error"
+          />
+          <p class="campo__ayuda" id="fc-contacto-ayuda">{f.campos.contacto.ayuda}</p>
+          <p class="campo__error" id="fc-contacto-error" data-mensaje={f.errores.contacto}></p>
+        </div>
+      </div>
+
+      <div class="campo">
+        <label class="campo__label" for="fc-necesidad">{f.campos.necesidad.label}</label>
+        <select class="campo__control campo__control--lista" id="fc-necesidad" name="necesidad">
+          <option value="">{f.campos.necesidad.placeholder}</option>
+          {f.campos.necesidad.opciones.map((opcion) => <option value={opcion.valor}>{opcion.label}</option>)}
+        </select>
+      </div>
+
+      <div class="campo">
+        <label class="campo__label" for="fc-mensaje">{f.campos.mensaje.label}</label>
+        <textarea
+          class="campo__control campo__control--texto"
+          id="fc-mensaje"
+          name="mensaje"
+          rows="4"
+          required
+          minlength={limites.mensaje.min}
+          maxlength={limites.mensaje.max}
+          aria-describedby="fc-mensaje-ayuda fc-mensaje-error"></textarea>
+        <p class="campo__ayuda" id="fc-mensaje-ayuda">{f.campos.mensaje.ayuda}</p>
+        <p class="campo__error" id="fc-mensaje-error" data-mensaje={f.errores.mensaje}></p>
+      </div>
+
+      <!-- Trampa para bots: fuera de la pantalla (no display:none, que algunos
+           bots detectan), fuera del orden de tabulación y oculta a los lectores
+           de pantalla. Si llega con algo, el servidor no envía nada. -->
+      <div class="formulario__trampa" aria-hidden="true">
+        <label for="fc-sitio-web">{f.trampa}</label>
+        <input id="fc-sitio-web" name="sitio_web" type="text" tabindex="-1" autocomplete="off" />
+      </div>
+
+      <!-- Turnstile se carga recién al abrir la ventana (render explícito): con
+           la ventana cerrada el widget no tiene ancho y no se puede elegir su
+           tamaño, y así el script de Cloudflare no se baja en cada visita.
+           Agrega dentro de este div el campo cf-turnstile-response. -->
+      <div>
+        <div class="formulario__verificacion" data-turnstile data-sitekey={siteKey}></div>
+        <p class="campo__error" data-error-verificacion data-mensaje={f.errores.verificacion}></p>
+      </div>
+
+      <p class="formulario__privacidad">{f.privacidad}</p>
+
+      <button class="boton formulario__boton" type="submit" data-enviando={f.botonEnviando}>{f.boton}</button>
+    </form>
+
+    <!-- Aviso de resultado: vacío hasta que el script copia acá una de las dos
+         plantillas. Siempre presente, para que los lectores de pantalla lo
+         anuncien al cambiar. -->
+    <div class="formulario__aviso" aria-live="polite" data-aviso></div>
+
+    <template data-plantilla="exito">
+      <p class="aviso aviso--exito" tabindex="-1">{f.exito}</p>
+    </template>
+    <template data-plantilla="error">
+      <p class="aviso aviso--error">{errorAntes}<a href={`mailto:${contacto.email}`}>{contacto.email}</a>{errorDespues}</p>
+    </template>
+  </div>
+</dialog>
+
+<script>
+  import { limitesFormulario } from '../data/site';
+
+  // Con JavaScript: validación con los textos del sitio (en vez de los globos
+  // del navegador), envío en JSON y resultado sin recargar la página.
+
+  type NombreCampo = keyof typeof limitesFormulario;
+  type Control = HTMLInputElement | HTMLTextAreaElement;
+  type Turnstile = {
+    render(contenedor: HTMLElement, opciones: Record<string, unknown>): string | undefined;
+    reset(contenedor?: string | HTMLElement): void;
+  };
+
+  const TURNSTILE_SCRIPT = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+
+  const dialogo = document.querySelector<HTMLDialogElement>('[data-formulario]');
+  if (dialogo) iniciar(dialogo);
+
+  function iniciar(dialogo: HTMLDialogElement) {
+    const form = dialogo.querySelector('form');
+    const aviso = dialogo.querySelector<HTMLElement>('[data-aviso]');
+    const boton = dialogo.querySelector<HTMLButtonElement>('button[type="submit"]');
+    const widget = dialogo.querySelector<HTMLElement>('[data-turnstile]');
+    const errorVerificacion = dialogo.querySelector<HTMLElement>('[data-error-verificacion]');
+    if (!form || !aviso || !boton) return;
+
+    const textoBoton = boton.textContent ?? '';
+    const textoEnviando = boton.dataset.enviando ?? textoBoton;
+    let enviando = false;
+
+    form.noValidate = true;
+
+    // ---- Abrir y cerrar ---------------------------------------------------
+
+    function abrir() {
+      if (!dialogo.open) dialogo.showModal();
+      if (!form?.hidden) cargarVerificacion();
+    }
+
+    document.querySelectorAll<HTMLElement>('[data-abrir-formulario]').forEach((disparador) => {
+      disparador.addEventListener('click', (evento) => {
+        evento.preventDefault();
+        abrir();
+      });
+    });
+
+    dialogo.querySelector('[data-cerrar]')?.addEventListener('click', () => dialogo.close());
+
+    // Un clic en el fondo oscuro cierra (el clic en el fondo llega con el
+    // <dialog> como destino; el panel lo cubre entero por dentro). Solo si el
+    // clic también empezó afuera: seleccionar texto de un campo y soltar
+    // fuera no debe cerrar la ventana y perder lo escrito.
+    let presionFuera = false;
+    dialogo.addEventListener('pointerdown', (evento) => {
+      presionFuera = evento.target === dialogo;
+    });
+    dialogo.addEventListener('click', (evento) => {
+      if (presionFuera && evento.target === dialogo) dialogo.close();
+      presionFuera = false;
+    });
+
+    // ---- Turnstile ----------------------------------------------------------
+
+    let verificacionPedida = false;
+
+    function cargarVerificacion() {
+      if (!widget || verificacionPedida) return;
+      verificacionPedida = true;
+
+      const ventana = window as Window & { turnstile?: Turnstile };
+      const dibujar = () => {
+        if (!widget) return;
+        ventana.turnstile?.render(widget, {
+          sitekey: widget.dataset.sitekey ?? '',
+          theme: 'dark',
+          // El widget normal mide al menos 300px; en teléfonos muy angostos
+          // se pide el compacto. Se mide ahora, con la ventana ya abierta.
+          size: widget.clientWidth < 300 ? 'compact' : 'flexible',
+          callback: () => mostrarErrorVerificacion(false),
+        });
+      };
+
+      if (ventana.turnstile) {
+        dibujar();
+        return;
+      }
+      const script = document.createElement('script');
+      script.src = TURNSTILE_SCRIPT;
+      script.async = true;
+      script.addEventListener('load', dibujar);
+      // Si no carga (sin conexión, bloqueador), se reintenta al volver a abrir.
+      script.addEventListener('error', () => {
+        script.remove();
+        verificacionPedida = false;
+      });
+      document.head.append(script);
+    }
+
+    function tieneVerificacion(): boolean {
+      const respuesta = form?.elements.namedItem('cf-turnstile-response') as HTMLInputElement | null;
+      return Boolean(respuesta?.value);
+    }
+
+    function mostrarErrorVerificacion(mostrar: boolean) {
+      if (errorVerificacion) errorVerificacion.textContent = mostrar ? (errorVerificacion.dataset.mensaje ?? '') : '';
+    }
+
+    // ---- Validación y envío -------------------------------------------------
+
+    const campos = (Object.keys(limitesFormulario) as NombreCampo[]).flatMap((nombre) => {
+      const control = form.elements.namedItem(nombre) as Control | null;
+      const error = control && document.getElementById(`${control.id}-error`);
+      return control && error ? [{ control, error, ...limitesFormulario[nombre] }] : [];
+    });
+
+    type Campo = (typeof campos)[number];
+
+    // Mismas reglas que el servidor: largo del texto sin espacios en los extremos.
+    function validarCampo({ control, error, min, max }: Campo): boolean {
+      const largo = control.value.trim().length;
+      const valido = largo >= min && largo <= max;
+      if (valido) control.removeAttribute('aria-invalid');
+      else control.setAttribute('aria-invalid', 'true');
+      error.textContent = valido ? '' : (error.dataset.mensaje ?? '');
+      return valido;
+    }
+
+    function mostrar(cual: 'exito' | 'error', enfocar = false) {
+      const plantilla = dialogo.querySelector<HTMLTemplateElement>(`template[data-plantilla="${cual}"]`);
+      if (!plantilla || !aviso || !form) return;
+      aviso.replaceChildren(plantilla.content.cloneNode(true));
+      if (cual === 'exito') {
+        // El aviso reemplaza al formulario. El foco pasa al aviso para que
+        // quien navega con teclado no quede en un botón que ya no existe.
+        form.hidden = true;
+        if (enfocar) aviso.querySelector<HTMLElement>('[tabindex]')?.focus();
+      }
+    }
+
+    // Camino sin JavaScript: el servidor redirigió con ?contacto=enviado|error.
+    // Se abre la ventana con el aviso y se quita el parámetro, para que no
+    // reaparezca al recargar.
+    const estado = new URLSearchParams(location.search).get('contacto');
+    if (estado === 'enviado' || estado === 'error') {
+      mostrar(estado === 'enviado' ? 'exito' : 'error');
+      abrir();
+      const url = new URL(location.href);
+      url.searchParams.delete('contacto');
+      history.replaceState(history.state, '', url);
+    }
+
+    // Después de un intento fallido, el error de cada campo se borra apenas
+    // el campo queda bien (no aparece mientras se escribe la primera vez).
+    form.addEventListener('input', (evento) => {
+      const campo = campos.find((c) => c.control === evento.target);
+      if (campo && campo.control.getAttribute('aria-invalid') === 'true') validarCampo(campo);
+    });
+
+    form.addEventListener('submit', async (evento) => {
+      evento.preventDefault();
+      if (enviando) return;
+      aviso.replaceChildren();
+
+      const invalidos = campos.filter((campo) => !validarCampo(campo));
+      if (invalidos.length > 0) {
+        invalidos[0].control.focus();
+        return;
+      }
+
+      // Sin la casilla de Turnstile marcada el servidor rechaza el envío: se
+      // avisa acá, con un texto que dice qué hacer, en vez del error general.
+      if (widget && !tieneVerificacion()) {
+        mostrarErrorVerificacion(true);
+        return;
+      }
+
+      // aria-disabled en vez de disabled: el botón conserva el foco.
+      enviando = true;
+      boton.setAttribute('aria-disabled', 'true');
+      boton.textContent = textoEnviando;
+
+      let ok = false;
+      try {
+        const respuesta = await fetch(form.action, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify(Object.fromEntries(new FormData(form))),
+        });
+        const datos = (await respuesta.json().catch(() => null)) as { ok?: boolean } | null;
+        ok = respuesta.ok && datos?.ok === true;
+      } catch {
+        ok = false;
+      }
+
+      enviando = false;
+      boton.removeAttribute('aria-disabled');
+      boton.textContent = textoBoton;
+
+      if (ok) {
+        mostrar('exito', true);
+        return;
+      }
+      mostrar('error');
+      // Cada respuesta de Turnstile sirve una sola vez: se pide otra para
+      // poder reintentar.
+      const turnstile = (window as Window & { turnstile?: Turnstile }).turnstile;
+      if (widget) turnstile?.reset(widget);
+    });
+  }
+</script>
+
+<style>
+  /* ---- Ventana ----------------------------------------------------------- */
+
+  /* Con la ventana abierta, la página de atrás no se desplaza. El hueco de
+     la barra de desplazamiento se mantiene para que nada salte de lugar. */
+  :global(html:has(.modal[open])) {
+    overflow: hidden;
+    scrollbar-gutter: stable;
+  }
+
+  /* El <dialog> no tiene relleno propio: el panel lo cubre entero, así un
+     clic con el <dialog> como destino es siempre un clic en el fondo. */
+  .modal {
+    width: min(100% - 1rem, 40rem);
+    max-width: none;
+    max-height: calc(100dvh - 1rem);
+    margin: auto;
+    padding: 0;
+    overflow: hidden;
+    background-color: var(--bg);
+    background-image: var(--halo);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-caluga);
+    color: var(--text);
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+    transition:
+      opacity 0.2s ease,
+      transform 0.2s ease,
+      overlay 0.2s allow-discrete,
+      display 0.2s allow-discrete;
+  }
+
+  .modal[open] {
+    opacity: 1;
+    transform: none;
+  }
+
+  @starting-style {
+    .modal[open] {
+      opacity: 0;
+      transform: translateY(10px) scale(0.98);
+    }
+  }
+
+  .modal::backdrop {
+    background: rgb(var(--bg-rgb) / 0.8);
+    backdrop-filter: blur(4px);
+    opacity: 0;
+    transition:
+      opacity 0.2s ease,
+      overlay 0.2s allow-discrete,
+      display 0.2s allow-discrete;
+  }
+
+  .modal[open]::backdrop {
+    opacity: 1;
+  }
+
+  @starting-style {
+    .modal[open]::backdrop {
+      opacity: 0;
+    }
+  }
+
+  .modal__panel {
+    max-height: inherit;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 1.25rem 1rem 1.5rem;
+  }
+
+  .modal__cabeza {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .modal__textos {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-width: 0;
+  }
+
+  .modal__titulo {
+    font-size: var(--size-2xl-fluid);
+    font-weight: var(--weight-light);
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+  }
+
+  .modal__bajada {
+    font-size: var(--size-base);
+    line-height: 1.5;
+    color: var(--text-soft);
+  }
+
+  /* 44px de área de toque; el borde se ve solo al pasar el mouse. */
+  .modal__cerrar {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--tap);
+    height: var(--tap);
+    margin: -0.375rem -0.375rem 0 0;
+    padding: 0;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 50%;
+    color: var(--text-soft);
+    cursor: pointer;
+  }
+
+  .modal__cerrar:hover {
+    border-color: var(--border);
+    color: var(--text);
+  }
+
+  /* ---- Formulario -------------------------------------------------------- */
+
+  .formulario__form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  /* `hidden` pierde contra el display:flex de arriba: se repite acá. */
+  .formulario__form[hidden] {
+    display: none;
+  }
+
+  .formulario__fila {
+    display: grid;
+    gap: 1.25rem;
+  }
+
+  /* ---- Campos ------------------------------------------------------------ */
+
+  .campo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    min-width: 0;
+  }
+
+  .campo__label {
+    font-size: var(--size-sm);
+    font-weight: var(--weight-medium);
+    color: var(--text-body);
+  }
+
+  .campo__ayuda {
+    font-size: var(--size-sm);
+    line-height: 1.45;
+    color: var(--text-soft);
+  }
+
+  /* 16px de letra como mínimo: con menos, iOS hace zoom al tocar el campo. */
+  .campo__control {
+    width: 100%;
+    min-height: var(--tap);
+    padding: 0.75rem 0.875rem;
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-family: inherit;
+    font-size: var(--size-base);
+    line-height: 1.5;
+  }
+
+  .campo__control--texto {
+    resize: vertical;
+  }
+
+  /* Lista desplegable con flecha propia: la del sistema no respeta el
+     padding ni los colores en todos los navegadores. */
+  .campo__control--lista {
+    appearance: none;
+    padding-right: 2.5rem;
+    background-image:
+      linear-gradient(45deg, transparent 50%, var(--text-soft) 50%),
+      linear-gradient(135deg, var(--text-soft) 50%, transparent 50%);
+    background-position:
+      calc(100% - 1.25rem) 50%,
+      calc(100% - 0.9375rem) 50%;
+    background-size: 0.3125rem 0.3125rem;
+    background-repeat: no-repeat;
+    cursor: pointer;
+  }
+
+  .campo__control--lista option {
+    background-color: var(--bg);
+    color: var(--text);
+  }
+
+  /* El anillo de foco es el global (:focus-visible); acá se suma el borde
+     en acento y se conserva el redondeo del campo. */
+  .campo__control:focus {
+    border-color: var(--accent);
+  }
+
+  .campo__control:focus-visible {
+    border-radius: var(--radius);
+  }
+
+  .campo__control[aria-invalid='true'] {
+    border-color: var(--error);
+  }
+
+  .campo__error {
+    font-size: var(--size-sm);
+    line-height: 1.45;
+    color: var(--error);
+  }
+
+  .campo__error:empty {
+    display: none;
+  }
+
+  /* ---- Trampa, verificación y envío -------------------------------------- */
+
+  .formulario__trampa {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
+  /* 65px es el alto del widget de Turnstile: se reserva para que el botón no
+     salte cuando carga. */
+  .formulario__verificacion {
+    min-height: 65px;
+  }
+
+  .formulario__privacidad {
+    font-size: var(--size-sm);
+    line-height: 1.5;
+    color: var(--text-soft);
+  }
+
+  /* .boton está pensado para enlaces: a un <button> le falta heredar la
+     letra y quitar el borde del sistema. */
+  .formulario__boton {
+    width: 100%;
+    border: 0;
+    font-family: inherit;
+    cursor: pointer;
+  }
+
+  .formulario__boton[aria-disabled='true'],
+  .formulario__boton[aria-disabled='true']:hover {
+    background: var(--accent);
+    opacity: 0.7;
+    cursor: progress;
+  }
+
+  /* ---- Aviso de resultado ------------------------------------------------ */
+
+  .aviso {
+    margin-top: 1rem;
+    padding: 0.875rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-size: var(--size-base);
+    line-height: 1.5;
+    color: var(--text-body);
+  }
+
+  /* Cuando reemplaza al formulario, va directo bajo el título. */
+  .formulario__form[hidden] + .formulario__aviso .aviso {
+    margin-top: 0;
+  }
+
+  .aviso--exito {
+    border-color: var(--border-accent);
+    background: var(--surface-accent);
+    color: var(--text);
+  }
+
+  .aviso--error {
+    border-color: var(--error);
+  }
+
+  /* Desde 400px cabe el widget de Turnstile con el relleno completo. */
+  @media (min-width: 400px) {
+    .modal__panel {
+      padding: 1.5rem 1.25rem 1.75rem;
+    }
+  }
+
+  @media (min-width: 600px) {
+    .modal__panel {
+      padding: 2rem 2rem 2.25rem;
+    }
+
+    .formulario__fila {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      align-items: start;
+      column-gap: 1rem;
+    }
+
+    .formulario__boton {
+      width: auto;
+      align-self: flex-start;
+    }
+  }
+</style>
